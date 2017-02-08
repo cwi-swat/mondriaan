@@ -19,6 +19,7 @@ Node svgElement(str name, list[Node] kids, map[str,str] attrs, map[str, str] pro
 // User functions
 
 void svg(value vals...) = build(vals, _svg);
+void foreignObject(value vals...) = build(vals, _foreignObject);
 void animate(value vals...) = build(vals, _animate);
 void animateColor(value vals...) = build(vals, _animateColor);
 void animateMotion(value vals...) = build(vals, _animateMotion);
@@ -126,6 +127,9 @@ void view(value vals...) = build(vals, _view);
   
 Node _svg(list[Node] kids, list[Attr] attrs)
   = svgElement("svg", kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
+  
+Node _foreignObject(list[Node] kids, list[Attr] attrs)
+  = svgElement("foreignObject", kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
 
 Node _animate(list[Node] kids, list[Attr] attrs)
   = svgElement("animate", kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
@@ -643,3 +647,12 @@ Attr onMouseMove(Msg msg) = simpleOn("mousemove", msg);
 Attr onMouseOut(Msg msg) = simpleOn("mouseout", msg);
 Attr onMouseOver(Msg msg) = simpleOn("mouseover", msg);
 Attr onMouseUp(Msg msg) = simpleOn("mouseup", msg);
+
+@doc{Smart constructors for constructing encoded event decoders.}
+Hnd succeed(Msg msg) = handler("succeed", encode(msg));
+
+Hnd targetValue(Msg(str) str2msg) = handler("targetValue", encode(str2msg));
+
+Hnd targetChecked(Msg(bool) bool2msg) = handler("targetChecked", encode(bool2msg));
+
+Hnd keyCode(Msg(int) int2msg) = handler("keyCode", encode(int2msg)); 
