@@ -1,4 +1,5 @@
 module salix::RenderFigure
+import util::Math;
 import salix::SVG;
 import salix::HTML;
 import salix::App;
@@ -17,8 +18,8 @@ data Figure = root(Figure fig= emptyFigure());
 
 data Figure (void() before = (){}, void() after = (){});
 
-alias Model = map[Figure, tuple[num x, num y, int width, int height, str fill, int strokeWidth, str stroke
-  , str visibility, Alignment align, Msg onclick]];
+alias Model = map[Figure, tuple[tuple[bool width, bool height] isAssigned, num x, num y, num width, num height, num grow, num shrink
+   , str fill, int strokeWidth, str stroke, str visibility, Alignment align, Msg onclick]];
   
 value vAlign(Alignment align) {
        if (align == bottomLeft || align == bottomMid || align == bottomRight) return salix::HTML::valign("bottom");
@@ -36,10 +37,11 @@ value hAlign(Alignment align) {
        
 list[value] fromModelToProperties(Figure f, Model m) {
    list[value] r =[];
-   r+= salix::SVG::x("<m[f].x>px");
-   r+= salix::SVG::y("<m[f].y>px");
-   if (m[f].width>=0) r+= salix::SVG::width("<m[f].width>px");
+   int lwo = m[f].strokeWidth; 
+   if (lwo<0) lwo = 0;
+   if (m[f].width>=0) r+= salix::SVG::width("<m[f].width>px"); 
    if (m[f].height>=0) r+= salix::SVG::height("<m[f].height>px");
+   r+= salix::SVG::x("<m[f].x+lwo/2>px"); r+= salix::SVG::y("<m[f].y+lwo/2>px");
    if (!isEmpty(m[f].fill)) r+= salix::SVG::fill(m[f].fill);
    if (!isEmpty(m[f].stroke)) r+= salix::SVG::stroke(m[f].stroke);
    if (m[f].strokeWidth>=0) r+= salix::SVG::strokeWidth("<m[f].strokeWidth>px");
@@ -50,26 +52,22 @@ list[value] fromModelToProperties(Figure f, Model m) {
    
 void() inner(Model m, Figure outer, Figure inner) {
     return (){
-       int widtho = m[outer].width; int heighto = m[outer].height; 
-       int widthi = m[inner].width; int heighti = m[inner].height; 
        int lwo = m[outer].strokeWidth; int lwi = m[inner].strokeWidth;
        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
+       num widtho = m[outer].width; num heighto = m[outer].height;
+       num widthi = m[inner].width; num heighti = m[inner].height;    
        list[value] svgArgs = [];
        if (widthi>=0) svgArgs+= salix::SVG::width("<widthi+lwi>px");
        if (heighti>=0) svgArgs+= salix::SVG::height("<heighti+lwi>px");
-       list[value] foreignObjectArgs = [];
+       list[value] foreignObjectArgs = [style(<"line-height", "0">)];
        if (widtho>=0) foreignObjectArgs+= salix::SVG::width("<widtho-lwo>px");
        if (heighto>=0) foreignObjectArgs+= salix::SVG::height("<heighto-lwo>px");
-       if (widtho>=0) foreignObjectArgs+= salix::SVG::x("<lwo>px");
-       if (heighto>=0) foreignObjectArgs+= salix::SVG::y("<lwo>px");
+       foreignObjectArgs+= salix::SVG::x("<lwo>px"); foreignObjectArgs+= salix::SVG::y("<lwo>px");
        list[value] tdArgs = [];
        if (widtho>=0) tdArgs+=salix::SVG::width("<widtho-lwo>px");
        if (heighto>=0) tdArgs+=salix::SVG::height("<heighto-lwo>px");
-       tdArgs += hAlign(m[outer].align);
-       tdArgs += vAlign(m[outer].align); 
-       // tdArgs+= [salix::HTML::style(<"vertical-align", "bottom">)];
-       m[inner].x+=lwi/2; m[inner].y+=lwi/2; 
-       list[value] tableArgs = [salix::HTML::style(<"height", "<heighto-lwo>px">)];     
+       tdArgs += hAlign(m[outer].align); tdArgs += vAlign(m[outer].align); 
+       list[value] tableArgs = [];     
        foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[(){svg(svgArgs+[(){eval(inner, m);}]);}]);});}]);}]);};
     }
   
@@ -86,22 +84,9 @@ void eval(Figure f, Model m) {
     }
     
  Model createStartModel(list[Figure] fs) {
-     Model r = (f:<f.at[0], f.at[1], f.width, f.height, f.fillColor, f.lineWidth, f.lineColor, f.visibility,
+     Model r = (f:<<f.width>=0, f.height>=0>, f.at[0], f.at[1], f.width, f.height, f.grow, f.shrink, f.fillColor, f.lineWidth, f.lineColor, f.visibility,
      f.align, noMsg()>|f<-fs); 
      for (f<-r) {
-         switch(f) {
-           case root(): {
-                   Figure g = f.fig;
-                   if (r[g].strokeWidth>=0 && r[g].width>=0 && r[g].height>=0) {
-                   if (f.width<0 && f.height<0) {
-                         r[f].width = r[g].width + r[g].strokeWidth;
-                         r[f].height = r[g].height + r[g].strokeWidth;                  
-                   }
-                   r[g].x += r[g].strokeWidth/2;
-                   r[g].y += r[g].strokeWidth/2;
-              }     
-            }
-        }
         if (onclick(Msg msg):=f.event) r[f].onclick = msg;
         }
      return r;
@@ -119,23 +104,66 @@ void eval(Figure f, Model m) {
      if (root():=f || box():=f) fs = getFigures(fs, f.fig);
      return fs+f;
      }
+     
+ 
+ Model pullDim(Figure f, Model m) {
+     if ((root():=f || box():=f) && emptyFigure()!:=f.fig) {
+        Figure g = f.fig;
+        m = pullDim(g, m);
+        int lwo = m[f].strokeWidth; int lwi = m[g].strokeWidth;
+        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
+        if (!m[f].isAssigned.width && m[g].width>=0) m[f].width = m[f].grow*m[g].width + lwi+round(m[g].x)+lwo;
+        if (!m[f].isAssigned.height && m[g].height>=0) m[f].height = m[f].grow*m[g].height + lwi+round(m[g].y)+lwo;
+        }
+     return m;
+     }
+     
+ Model pushDim(Figure f, Model m) {
+     Figure g = f.fig;  
+     if ((root():=g || box():=g) && emptyFigure()!:=f) {
+        int lwo = m[f].strokeWidth; int lwi = m[g].strokeWidth;
+        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
+        if (!m[g].isAssigned.width && m[f].width>=0) m[g].width = m[f].shrink*m[f].width - lwi -round(m[g].x) - lwo;
+        if (!m[g].isAssigned.height && m[f].height>=0) m[g].height = m[f].shrink*m[f].height -lwi - round(m[g].y)-lwo;
+        m = pushDim(g, m);
+        }
+     return m;
+     }
+     
+ Model solveStepDim(Figure f, Model m) {
+     Model t = pushDim(f, m);
+     return pullDim(f, t);
+     }
+     
+ Model solveDim(Figure f, Model old, Model m) {
+     for (Figure f<-m) {
+          if (m[f].width != old[f].width) m[f].isAssigned.width = true;
+          if (m[f].height != old[f].height) m[f].isAssigned.height = true;
+          }
+     return solve(m) solveStepDim(f, m);
+     }
   
  
  App[Model] figApp(Figure f, Model(Msg, Model) update, int width = -1, int height = -1, int fillColor="") {
      Figure root = root(width = width, height = height, fillColor= fillColor);
      root.fig = f;
      Model startModel = createStartModel(getFigures([], root));
-     Model init() {return startModel;}    
+     Model init() {Model r = startModel; return solveDim(root, r, r);} 
+     Model extendUpdate(Msg msg, Model m) {
+           Model r = update(msg, m); 
+           r=solveDim(root, m, r); return r;
+           }  
      void(Model) view(Figure f) {return void(Model m) {
-       div(() {
+       body([/*style(<"line-height", "0">)*/]+[() {div(() {
           f.before();
           eval(root, m);
           f.after();
           });
-        };
+        }]);
+       };
       };
   
-  return app(init, view(f), update, 
+  return app(init, view(f), extendUpdate, 
     |http://localhost:9103|, |project://salix/src|);
    }
        
