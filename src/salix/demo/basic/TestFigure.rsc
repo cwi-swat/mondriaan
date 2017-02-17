@@ -4,46 +4,53 @@ import salix::HTML;
 import salix::App;
 import salix::LayoutFigure;
 
-alias Model = tuple[str innerFill, num middleGrow];
+//-------------------------------------------------------------------MODEL--------------------------------------------------------------------------------
+
+alias Model = tuple[bool state, str innerFill, num middleGrow, Alignment align, int middleLineWidth];
+
+Model startModel = <false, "snow", 1.2, bottomRight, 8>;
 
 data Msg
    = doIt()
    ;
-
-Figure testFigure(Model m) {
-    Figure down =  box(event=onclick(doIt()), width=50, height = 50,
-                                 fillColor=m.innerFill,        lineWidth  = 4, lineColor="magenta");
-    Figure middle= box(grow=m.middleGrow, fillColor="antiquewhite",lineWidth =  8, lineColor="green", align=bottomRight, fig = down);
-    Figure top =   
-             box(grow=1.4, fillColor="lightyellow", lineWidth = 16, lineColor="brown" ,align=topLeft,     fig=middle
-             , padding=<10, 10, 10, 10>);
-    return top;
-    }    
-
-
-void myView(Model m) {
-    div(() {
-        h2("Figure using SVG");
-        fig(testFigure(m));
-        });
-    }
-    
-Model init() = <"snow", 1.2>;
-
+   
 Model update(Msg msg, Model m) {
     switch (msg) {
        case doIt(): 
-          if (m.innerFill=="snow") {
-              m.innerFill= "lightgrey";
-              m.middleGrow = 1.5;
+          if (m.state) {
+              m = startModel;         
               }
           else {
-              m.innerFill = "snow";
-              m.middleGrow = 1.2;
+              m.innerFill= "lightgrey";
+              m.middleGrow = 1.5;
+              m.align= topLeft;
+              m.middleLineWidth = 4;
+              m.state = true;
               }
          }
          return m;
 }
+
+Model init() = startModel;
+
+//-------------------------------------------------------------------VIEW---------------------------------------------------------------------------------
+
+Figure testFigure(Model m) {
+    Figure down =  box(width=50, height = 50,fillColor=m.innerFill, lineWidth  = 4, lineColor="magenta");
+    Figure middle= box(fig = down, grow=m.middleGrow, fillColor="antiquewhite",lineWidth =  m.middleLineWidth, lineColor="green", align=m.align);
+    Figure top =   box(fig=middle, grow=1.4, fillColor="lightyellow", lineWidth = 16, lineColor="brown" ,align=topLeft);
+    return top;
+    }    
+
+void myView(Model m) {
+    div(() {
+        h2("Figure using SVG");
+        fig(testFigure(m), width = 400, height = 400);
+        salix::HTML::div(() {salix::HTML::button(salix::HTML::onClick(doIt()), "On/Off");});
+        });
+    }
+    
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 App[Model] testApp() {
    return app(init, myView, update, 

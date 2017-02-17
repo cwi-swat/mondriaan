@@ -107,30 +107,15 @@ list[void()] tableRows(Figure f) {
        }
     return r;
     }
-  
-void eval(Figure f) {
-    switch(f) {
-        case emptyFigure():;
-        case root(): svg(fromSvgModelToProperties(f)+[() {eval(f.fig);}]);
-        case box(): {
-         \rect(fromSvgModelToProperties(f)
-         );
-         if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();
-         }
-        case grid(): {
-            foreignObject([(){salix::HTML::table(fromTableModelToProperties(f)+tableRows(f));}]);
-            }
-        }
-    }
+   
+void eval(emptyFigure()) {;}
+
+void eval(Figure f:root()) {svg(fromSvgModelToProperties(f)+[() {eval(f.fig);}]);}
+
+void eval(Figure f:box()) {\rect(fromSvgModelToProperties(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
+
+void eval(Figure f:grid()) {foreignObject([(){salix::HTML::table(fromTableModelToProperties(f)+tableRows(f));}]);}
  
- /*      
- public Figure getRoot(Model m) {
-     for (f<-m) {
-        if (root():=f) return f;
-        }
-     return emptyFigure();
-     }
- */
  Figure pullDim(Figure f) {
      if ((root():=f || box():=f) && emptyFigure()!:=f.fig) {
         f.fig = pullDim(f.fig);
@@ -185,13 +170,9 @@ void eval(Figure f) {
      }
      
  public void fig(Figure f, num width = -1, num height = -1) {
-     Figure root = root(width = width, height = height);
+     Figure root = root(width = round(width), height = round(height));
      root.fig = f;
      root = solveDim(root);
      eval(root);
      }
-     
-  
-     
- 
      
