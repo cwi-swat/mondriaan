@@ -38,14 +38,17 @@ Model init() = startModel;
 Figure testFigure(Model m) {
     Figure down =  box(width=50, height = 50,fillColor=m.innerFill, lineWidth  = 4, lineColor="magenta");
     Figure middle= box(fig = down, grow=m.middleGrow, fillColor="antiquewhite",lineWidth =  m.middleLineWidth, lineColor="green", align=m.align);
-    Figure top =   box(fig=middle, grow=1.4, fillColor="lightyellow", lineWidth = 16, lineColor="brown" ,align=topLeft);
-    return top;
+    Figure top =   box(fig=middle, grow=1.4, fillColor="lightyellow", lineWidth = 16, lineColor="brown", padding=<4, 4, 4, 4>);
+    return box(lineWidth=4, fig = 
+           grid(borderWidth = 4,  borderStyle="groove", figArray=[[top, top]])
+            , lineColor="red", align = topLeft)
+           ;
     }    
 
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m), width = 400, height = 400);
+        fig(testFigure(m), width = 600, height = 400);
         salix::HTML::div(() {salix::HTML::button(salix::HTML::onClick(doIt()), "On/Off");});
         });
     }
