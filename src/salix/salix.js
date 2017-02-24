@@ -277,6 +277,7 @@ function Salix(aRootId) {
 	function build(vdom, attach) {
 	    if (vdom.txt) {
 	        attach(document.createTextNode(vdom.txt.contents));
+	        // attach(document.innerHTML(vdom.txt.contents));
 	        return;
 	    }
 
