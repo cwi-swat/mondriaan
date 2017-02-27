@@ -152,7 +152,7 @@ void build(list[value] vals, Node(list[Node], list[Attr]) elt) {
 }
 
 @doc{Create a text node from an arbitrary value.}
-void _text(value v) = add(txt("<v>")); // TODO: HTML encode.
+void _text(value v) = add(htm("<v>")); // TODO: HTML encode.
 
 
 /*

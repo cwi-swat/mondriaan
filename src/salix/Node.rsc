@@ -22,6 +22,7 @@ data Node
   = element(str tagName, list[Node] kids, map[str, str] attrs, map[str, str] props, map[str, Hnd] events)
   | native(str kind, str id, map[str,str] attrs, map[str, str] props, map[str, Hnd] events, map[str,value] extra = ())
   | txt(str contents)
+  | htm(str contents)
   | empty() 
   ;  
 

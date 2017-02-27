@@ -146,9 +146,15 @@ void() tableCells(Figure f, list[Figure] g) {
     
 void() tableRows(Figure f) {
     list[void()] r =[];
-    for (list[Figure] g<-f.figArray) {
-    list[Figure] w  =g;
-     r+= [() {
+    list[list[Figure]] figArray = [];
+    if (grid():=f) figArray = f.figArray;
+    else if (vcat():=f) {
+         list[list[Figure]] fa = [[h]|h<-f.figs];
+         figArray = fa;
+         }
+    for (list[Figure] g<-figArray) {
+    list[Figure] w  = g;
+    r+= [() {
         salix::HTML::tr(tableCells(f, w));  
         }];
        }
@@ -160,10 +166,8 @@ num getGrowFactor(Figure f, Figure g) {
     return 1;
     }
     
- bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f;
-    
-    
-   
+bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f;
+      
 Figure pullDim(Figure f) {
      if (f.size != <0, 0>) {
        if (f.width<0) f.width = f.size[0];
@@ -189,14 +193,20 @@ Figure pullDim(Figure f) {
         if (f.height<0 && g.height>=0) f.height = round(f.grow*getGrowFactor(f, g)*g.height) + lwi+round(g.at[1])+lwo;
         // To Do the case of a circle
         }
-     if (grid():=f) {
+     if (grid():=f || vcat():=f) {
          list[list[Figure]] z =[];
          int height = 0;
          int lw = round(f.borderWidth);
          if (lw<0) lw = 0;
          int nc  = 0;
-         list[int] maxColWidth = [0|_<-[0..max([size(g)|g<-f.figArray])]];
-         for (list[Figure] g<- f.figArray) {
+         list[list[Figure]] figArray = [];
+         if (grid():=f) figArray = f.figArray;
+         else if (vcat():=f) {
+              list[list[Figure]] fa = [[h]|h<-f.figs];
+              figArray = fa;
+              }
+         list[int] maxColWidth = [0|_<-[0..max([size(g)|g<-figArray])]];
+         for (list[Figure] g<- figArray) {
             list[Figure] r = [];
             int h1 = 0;
             int i = 0;   
@@ -215,13 +225,19 @@ Figure pullDim(Figure f) {
             z+=[r];
             } 
           int width = sum(maxColWidth);  
-          f.figArray= z;
+          if (grid():=f) f.figArray= z;
+          else
+          if (vcat():=f) f.figs = [head(h)|list[Figure] h<-z];
           f.width = width+nc*(f.hgap+2*lw)+f.hgap; f.height = height+size(z)*(f.vgap+2*lw)+f.vgap;
           }
      return f;
      }
      
  Figure pushDim(Figure f) {
+     if (f.size != <0, 0>) {
+       if (f.width<0) f.width = f.size[0];
+       if (f.height<0) f.height = f.size[1];
+       }
      if (hasFigField(f) && emptyFigure()!:=f.fig) {
            Figure g = f.fig;  
            int lwo = round(f.lineWidth); int lwi = round(g.lineWidth);
@@ -230,14 +246,22 @@ Figure pullDim(Figure f) {
            if (g.height<0 && f.height>=0) g.height = round(f.shrink*f.height) -lwi - round(g.at[1])-lwo;
            f.fig = pushDim(g);
      }
-     if (grid():=f) {
+     if (grid():=f || vcat():=f) {
+         list[list[Figure]] figArray = [];
+         if (grid():=f) figArray = f.figArray;
+         else if (vcat():=f) {
+              list[list[Figure]] fa = [[h]|h<-f.figs];
+              figArray = fa;
+              }
          list[list[Figure]] z =[];
-         for (list[Figure] g<- f.figArray) {
+         for (list[Figure] g<- figArray) {
             list[Figure] r = [];
             for (Figure h<-g)  r += pushDim(h);
             z+=[r];
             }
-          f.figArray= z;
+          if (grid():=f) f.figArray= z;
+          else
+          if (vcat():=f) f.figs = [head(h)|list[Figure] h<-z];
           }
      return f;
      }
@@ -294,9 +318,16 @@ void eval(Figure f:htmlText(value v)) {
      if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
      if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
      if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
+     if (htmlText(_):=f) {
+          if(f.width>=0)  styles+= <"max-width", "<f.width>px">;
+          if(f.height>=0)  styles+= <"max-height", "<f.height>px">;
+          if(f.width>=0)  styles+= <"min-width", "<f.width>px">;
+          if(f.height>=0)  styles+= <"min-height", "<f.height>px">;
+          }
      list[value] tdArgs =[salix::HTML::style(styles)];
      tdArgs += hAlign(f.align);
-     tdArgs += vAlign(f.align);
+     tdArgs += vAlign(f.align); 
+     tdArgs+=[salix::HTML::style(styles)];
      list[value] tableArgs = foreignObjectArgs+TextModelToProperties(f, false); 
      if(str s:=v) foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[s]);});}]);}]);
     }
@@ -304,6 +335,11 @@ void eval(Figure f:htmlText(value v)) {
  void eval(Figure f:svgText(value v)) {
      if(str s:=v) text_(TextModelToProperties(f, true)+[s]);
     }
+    
+void eval(Figure f:vcat()) {
+                   list[value] foreignObjectArgs = [style(<"line-height", "0">)];
+                   foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
+                   }
  
 
 void eval(Figure f:grid()) {

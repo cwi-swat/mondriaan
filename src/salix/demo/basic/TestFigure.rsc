@@ -10,7 +10,7 @@ import salix::LayoutFigure;
 
 alias Model = tuple[bool state, str innerFill1, str innerFill2, num middleGrow, Alignment align1, Alignment align2, int middleLineWidth, str label];
 
-Model startModel = <false, "snow", "lightgrey", 1.2, bottomRight, topLeft, 8, "Hello">;
+Model startModel = <false, "snow", "lightgrey", 1.2, bottomRight, topLeft, 8, "Hello\<br\>Dag">;
 
 data Msg
    = doIt()
@@ -35,7 +35,7 @@ Model update(Msg msg, Model m) {
               m.align1 = q;
               m.middleLineWidth = 4;
               m.state = true;
-              m.label = "World";
+              m.label = "Hallo\<br\>World";
               }
          case newFace(int n):;
          }
@@ -63,11 +63,16 @@ Figure testFigure(Model m) {
                    )
                 ,box(lineWidth=2, lineColor="darkred",fig=circle(lineWidth=4, lineColor="gold", fig=box(lineWidth=2, lineColor="red",  width=50, height=50)))
                ],      
-              [box(align=topLeft, fig=htmlText(m.label, fontColor="black", fontWeight="bold", width=80, height=15), lineWidth= 2, lineColor="darkred", width=80, height=20)]
+              [box(align=topLeft, fig=htmlText(m.label, fontColor="black", fontWeight="bold"), lineWidth= 2, lineColor="darkred", width=80, height=80)]
              ])
             , lineColor="red")
            ;
-    }    
+    } 
+    
+ Figure testVcat(Model m) = vcat(figs=[
+                                      box(lineWidth=4, width=100, height = 100, fillColor="yellow", lineColor="brown")
+                                      ,box(lineWidth=4, width=100, height = 50, fillColor="yellow", lineColor="red")
+                                      ]);   
 
 void myView(Model m) {
     div(() {

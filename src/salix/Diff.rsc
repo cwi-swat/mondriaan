@@ -13,6 +13,7 @@ import salix::Patch;
 import Node;
 import List;
 import util::Math;
+import IO;
 
 bool sanity(Node h1, Node h2) = apply(diff(h1, h2), h1) == h2;
 
@@ -30,6 +31,13 @@ Patch diff(Node old, Node new, int idx) {
   if (old is txt, new is txt) {
     if (old.contents != new.contents) {
       return patch(idx, edits = [setText(new.contents)]);
+    }
+    return patch(idx);
+  }
+  
+  if (old is htm, new is htm) {
+    if (old.contents != new.contents) {
+      return patch(idx, edits = [setHtml(new.contents)]);
     }
     return patch(idx);
   }

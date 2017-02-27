@@ -179,18 +179,21 @@ function Salix(aRootId) {
 			var edit = edits[i];
 			var type = nodeType(edit);
 
-			switch (type) {
-			
+			switch (type) {		
 			case 'replace':
 				build(edit[type].html, attach);
-
+				
 			case 'setText': 
 				dom.nodeValue = edit[type].contents;
-				break;			
+				break;	
+				
+			case 'setHtml':
+				dom.innerHTML= edit[type].contents;
+				break;
 				
 			case 'removeNode': 
 				dom.removeChild(dom.lastChild);
-				break;
+				break;	
 				
 			case 'appendNode':
 				build(edit[type].html, appender(dom));
@@ -277,10 +280,15 @@ function Salix(aRootId) {
 	function build(vdom, attach) {
 	    if (vdom.txt) {
 	        attach(document.createTextNode(vdom.txt.contents));
-	        // attach(document.innerHTML(vdom.txt.contents));
 	        return;
 	    }
-
+	    if (vdom.htm) {
+	    	var descriptionNode = document.createElement("div");
+	    	descriptionNode.className = "description"; 
+	    	descriptionNode.innerHTML = vdom.htm.contents;
+	    	attach(descriptionNode);
+	    	return;
+	    }
 	    var type = nodeType(vdom);
 	    var vattrs = vdom[type].attrs || {};
 	    var vprops = vdom[type].props || {};

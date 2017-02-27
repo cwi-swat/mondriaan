@@ -27,6 +27,7 @@ data Patch
 @doc{Primitive edit constructs.}
 data Edit
   = setText(str contents)
+  | setHtml(str contents)
   | replace(Node html)
   | removeNode() 
   | appendNode(Node html) 
@@ -54,6 +55,7 @@ Node apply(Patch p, Node html) {
 }
   
 Node apply(setText(str txt), txt(_)) = txt(txt);
+Node apply(setHtml(str txt), htm(_)) = htm(txt);
 Node apply(replace(Node html), _) = html;
 Node apply(appendNode(Node html), Node e) = e[kids=e.kids + [html]];
 Node apply(removeNode(), Node e) = e[kids = e.kids[..-1]];
