@@ -354,6 +354,7 @@ Attr onSubmit(Msg msg) = event("submit", succeed(msg));
 Attr onBlur(Msg msg) = event("blur", succeed(msg));
 Attr onSubmit(Msg msg) = event("focus", succeed(msg));
 Attr onInput(Msg(str) f) = event("input", targetValue(f)); 
+Attr onChange(Msg(int) f) = event("change", targetInt(f)); 
 Attr onCheck(Msg(bool) f) = event("check", targetChecked(f));
 
   
@@ -361,6 +362,8 @@ Attr onCheck(Msg(bool) f) = event("check", targetChecked(f));
 Hnd succeed(Msg msg) = handler("succeed", encode(msg));
 
 Hnd targetValue(Msg(str) str2msg) = handler("targetValue", encode(str2msg));
+
+Hnd targetInt(Msg(int) int2msg) = handler("targetInt", encode(int2msg));
 
 Hnd targetChecked(Msg(bool) bool2msg) = handler("targetChecked", encode(bool2msg));
 

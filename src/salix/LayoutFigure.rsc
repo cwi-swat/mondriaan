@@ -58,6 +58,15 @@ list[value] fromSvgModelToProperties(Figure f) {
    return r;
    }
    
+list[value] svgSize(Figure f) {
+   list[value] r =[];
+   int lw = round(f.lineWidth); 
+   if (lw<0) lw = 0;
+   if (f.width>=0) r+= salix::SVG::width("<f.width+f.at[0]+lw>px"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height+f.at[1]+lw>px");
+   return r;
+   }
+   
 list[value] TextModelToProperties(Figure f, bool svg) {
     list[tuple[str, str]] styles=[]; 
     if (!svg) styles+= <"overflow", f.overflow>; 
@@ -168,6 +177,10 @@ num getGrowFactor(Figure f, Figure g) {
 bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f;
 
 Figure pullDim(Figure f:overlay()) {
+    if (f.size != <0, 0>) {
+       if (f.width<0) f.width = f.size[0];
+       if (f.height<0) f.height = f.size[1];
+       }  
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
     int maxWidth = round(max([h.width+h.at[0]+2*(h.lineWidth<0?0:h.lineWidth)+10|h<-f.figs]));
@@ -402,9 +415,9 @@ Figure pullDim(Figure f) {
      
 void eval(emptyFigure()) {;}
 
-void eval(Figure f:root()) {svg(fromSvgModelToProperties(f)+[() {eval(f.fig);}]);}
+void eval(Figure f:root()) {svg(svgSize(f)+[() {eval(f.fig);}]);}
 
-void eval(Figure f:overlay()) {for (g<-f.figs) {svg(fromSvgModelToProperties(g)+[() {eval(g);}]);}}
+void eval(Figure f:overlay()) {svg(svgSize(f)+[(){for (g<-f.figs) {svg(svgSize(g)+[() {eval(g);}]);}}]);}
 
 void eval(Figure f:box()) {\rect(fromSvgModelToProperties(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 

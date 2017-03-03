@@ -391,6 +391,9 @@ function Salix(aRootId) {
 			targetValue: function (args) {
 				return function (e) { return {type: 'string', value: e.target.value}; };
 			},
+			targetInt: function (args) {
+				return function (e) { return {type: 'integer', value: e.target.value}; };
+			},
 			targetChecked: function (args) {
 				return function (e) { return {type: 'boolean', value: e.target.checked}; };
 			},

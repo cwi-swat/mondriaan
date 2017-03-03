@@ -31,7 +31,7 @@ Figure stack1(Figure f) = vcat(align=centerMid, vgap=4, figs=[box(grow=1.2, fig=
  Figure tests(Model m) {
      return vcat(borderWidth=4, borderColor="grey", borderStyle="groove", vgap=4, figs=  mapper(
         [
-      overlay(size=<500, 500>, figs=[b("green", 0, 0), b("blue",20, 0), b("yellow", 0, 20)])
+      overlay(figs=[b("red", 0, 0), b("blue",40, 0), b("yellow", 0, 40)])
       ,box(size=<100, 100>, fillColor ="green", lineWidth=2, lineColor="black")
       //  ,box(size=<80, 40>, lineColor="black", lineWidth=2, fig=htmlText("Hallo", fontSize=20, fontColor="darkred"), fillColor = "antiquewhite")
       // ,box(fillColor="antiquewhite", lineWidth = 8, lineColor="blue", align = centerMid, grow  =1.0
