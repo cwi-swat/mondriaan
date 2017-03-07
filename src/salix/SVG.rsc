@@ -528,6 +528,7 @@ Attr vHanging(str val) = attr("v-hanging", val);
 Attr vIdeographic(str val) = attr("v-ideographic", val);
 Attr vMathematical(str val) = attr("v-mathematical", val);
 Attr values(str val) = attr("values", val);
+Attr vectorEffect(str val) = attr("vector-effect", val);
 Attr version(str val) = attr("version", val);
 Attr vertAdvY(str val) = attr("vert-adv-y", val);
 Attr vertOriginX(str val) = attr("vert-origin-x", val);

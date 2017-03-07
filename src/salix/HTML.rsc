@@ -355,6 +355,7 @@ Attr onBlur(Msg msg) = event("blur", succeed(msg));
 Attr onSubmit(Msg msg) = event("focus", succeed(msg));
 Attr onInput(Msg(str) f) = event("input", targetValue(f)); 
 Attr onChange(Msg(int) f) = event("change", targetInt(f)); 
+Attr onChange(Msg(str) f) = event("change", targetValue(f)); 
 Attr onCheck(Msg(bool) f) = event("check", targetChecked(f));
 
   
