@@ -25,17 +25,19 @@ Model init() = startModel;
 
 
 Figure testFigure(Model m) {
-     int n  = 100;
-     return overlay(size=<400, 400>, figs=[box(size=<400, 400>, lineWidth=2, lineColor="black"), 
-       path([p_.M(0, 0)]+[p_.L(i/n, sin(2*PI()*i/n))|num i<-[1,1+1.0/n..n]]
-       ,scaleX=400, scaleY=400)
-       ]);
+     int n  = 50;
+     return box(lineWidth=2, lineColor="black", fig=overlay(size=<700, 200>, figs=[
+       path([p_.M(0, 0)]+[p_.L(2*PI()*i/n, sin(2*PI()*i/n))|num i<-[1,1+1.0/n..2*n]]
+       ,scaleX=100, scaleY=-100, at=<0, 100>, fillColor="none", lineColor="red")
+       , path([p_.M(0, 1)]+[p_.L(2*PI()*i/n, cos(2*PI()*i/n))|num i<-[1,1+1.0/n..2*n]]
+       ,scaleX=100, scaleY=-100, at=<0, 100>, fillColor="none", lineColor="blue")
+       ]));
      }
      
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m), width = 600, height = 700);     
+        fig(testFigure(m), width = 800, height = 700);     
         });
     }
     

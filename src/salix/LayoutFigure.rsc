@@ -74,15 +74,15 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    list[value] r =[];
    int lwo = round(f.lineWidth); 
    if (lwo<0) lwo = 0;
+   if (f.width>=0) r+= salix::SVG::width("<f.width>px"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height>px");
    r+=salix::SVG::vectorEffect("non-scaling-stroke");
-   r+=salix::SVG::transform("translate(<f.at[0]>, <f.at[1]>) scale(<f.scaleX>,<f.scaleY>) "
-       +f.transform);
-   r+=salix::SVG::d(intercalate(",", curve));
-   // r+=fromCommonFigureAttributesToSalix(f);
+   r+=salix::SVG::d(intercalate(" ", curve));
+   r+=fromCommonFigureAttributesToSalix(f);
    return r; 
    }  
        
-list[value] fromFigureAttributesToSalix(Figure f) {
+default list[value] fromFigureAttributesToSalix(Figure f) {
    list[value] r =[];
    int lwo = round(f.lineWidth); 
    if (lwo<0) lwo = 0;
@@ -218,8 +218,8 @@ Figure pullDim(Figure f:overlay()) {
        }  
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
-    int maxWidth = round(max([h.width+h.at[0]+2*(h.lineWidth<0?0:h.lineWidth)+10|h<-f.figs]));
-    int maxHeight = round(max([h.height+h.at[1]+2*(h.lineWidth<0?0:h.lineWidth)+10|h<-f.figs]));
+    int maxWidth = round(max([h.width+h.at[0]+(h.lineWidth<0?0:h.lineWidth)/*+10*/|h<-f.figs]));
+    int maxHeight = round(max([h.height+h.at[1]+(h.lineWidth<0?0:h.lineWidth)/*+10*/|h<-f.figs]));
     if (f.width<0) f.width = maxWidth;
     if (f.height<0) f.height = maxHeight;
     return f;
@@ -364,15 +364,14 @@ Figure pullDim(Figure f) {
      
  Figure pushDim(Figure f:overlay()) {
     if (isEmpty(f.figs)) return f;
+    list[Figure] z =[];
     if (f.width>=0)
     for (Figure h<-f.figs) {
-       if (h.width<0) h.width = f.width;
+       if (f.width>=0 && h.width<0) h.width = f.width;
+       if (f.height>=0 && h.height<0) h.height = f.height;
+       z+=[h];
        }
-    if (f.height>=0)
-    for (Figure h<-f.figs) {
-       if (h.height<0) h.width = f.height;
-       }
-    f.figs = [pushDim(h)|h<-f.figs];
+    f.figs = [pushDim(h)|h<-z];
     return f;
     }
      
@@ -492,21 +491,28 @@ void eval(Figure f:htmlText(value v)) {
     
 void eval(Figure f:vcat()) {
                    list[value] foreignObjectArgs = [style(<"line-height", "0">)];
+                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>px");
+                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>px");
                    foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
                    }
                    
 void eval(Figure f:hcat()) {
                    list[value] foreignObjectArgs = [style(<"line-height", "0">)];
+                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>px");
+                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>px");
                    foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
                    }
  
 
 void eval(Figure f:grid()) {
                    list[value] foreignObjectArgs = [style(<"line-height", "0">)];
+                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>px");
+                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>px");
                    foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
                    }
                    
 void eval(Figure f:path(list[str] _)) {
-                   salix::SVG::path(fromFigureAttributesToSalix(f));
+                   salix::SVG::g(salix::SVG::transform("translate(<f.at[0]>, <f.at[1]>) scale(<f.scaleX>,<f.scaleY>) "+f.transform),
+                          (){salix::SVG::path(fromFigureAttributesToSalix(f));});
                    }
      
