@@ -32,7 +32,6 @@ void myView(Model m) {
     div(() {
         h2("Figure using SVG");
         fig(testFigure(m), width = 600, height = 700);
-        salix::HTML::div(() {salix::HTML::button(salix::HTML::onClick(doIt()), "On/Off");});
         });
     }
     

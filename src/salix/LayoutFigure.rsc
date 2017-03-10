@@ -88,7 +88,7 @@ default list[value] fromFigureAttributesToSalix(Figure f) {
    if (lwo<0) lwo = 0;
    if (f.width>=0) r+= salix::SVG::width("<f.width>px"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>px");
-   r+= salix::SVG::x("<f.at[0]+lwo/2>px"); r+= salix::SVG::y("<f.at[1]+lwo/2>px");
+   r+= salix::SVG::x("<lwo/2>px"); r+= salix::SVG::y("<lwo/2>px");
    r+=fromCommonFigureAttributesToSalix(f);
    return r;
    }
@@ -196,8 +196,8 @@ void() tableRows(Figure f) {
     else if (vcat():=f) figArray  = [[h]|h<-f.figs];    
     else if (hcat():=f) figArray  = [f.figs];
     for (list[Figure] g<-figArray) {
-    list[Figure] w  = g;
-    r+= [() {
+      list[Figure] w  = g;
+        r+= [() {
         salix::HTML::tr(tableCells(f, w));  
         }];
        }
@@ -210,6 +210,11 @@ num getGrowFactor(Figure f, Figure g) {
     }
     
 bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f;
+
+Figure pullDim(atXY(num x, num y, Figure g)) {
+      g.at = <x, y>;
+      return pullDim(g);
+      }
 
 Figure pullDim(Figure f:overlay()) {
     if (f.size != <0, 0>) {
@@ -225,7 +230,7 @@ Figure pullDim(Figure f:overlay()) {
     return f;
     }
       
-Figure pullDim(Figure f) {
+default Figure pullDim(Figure f) {
      if (f.size != <0, 0>) {
        if (f.width<0) f.width = f.size[0];
        if (f.height<0) f.height = f.size[1];
@@ -295,72 +300,74 @@ Figure pullDim(Figure f) {
      list[list[Figure]] r = [[]|_<-[0..max([size(g)|g<-m])]];
      for (int i<-[0..size(m)]) {
           for (int j<-[0..size(m[i])]) {
-             r[j]+=m[i];
+             r[j]+=[m[i][j]];
           }
        }
      return r;    
      }
      
- tuple[num, list[Figure]] getHeightMissingCells(Figure f) {
-     if (f.height<0) return <-1, []>;
-     int lw = round(f.borderWidth);
-     num height = -1;
-     if (lw<0) lw = 0;
-     list[list[Figure]] figArray = [];
-     if (grid():=f) figArray = f.figArray;
-         else if (vcat():=f) figArray= [[h]|h<-f.figs]; 
-         else if (hcat():=f) figArray  = [f.figs]; 
-     list[Figure] result=[];
+ tuple[num, list[list[Figure]]] getHeightMissingCells(int height, int lw, int vgap, list[list[Figure]] figArray) {
+     if (height<0) return <-1, []>;
      int nUndefinedRows = 0;
      int definedHeight = 0;
+     int sumLw = 0;
+     list[list[Figure]] z =[];
      for (list[Figure] g<- figArray) {
-         bool isDefined = false;
+         list[Figure] r =[];
+         int maxHeight = -1;int maxLw = -1;
          for (Figure h<-g) {
-         if (h.height>=0) {
-              isDefined=true;
-              definedHeight+=h.height;
-              }
+              maxHeight= max(h.height, maxHeight);
+              maxLw = max(h.lineWidth, maxLw);
          }
-         if (!isDefined) {
-                 result=concat([result, g]);
-                 nUndefinedRows+=1;
-                 }
+         if (maxHeight>=0) definedHeight= definedHeight+maxHeight;
+         if (maxLw>=0) sumLw+=maxLw;
+         for (Figure h<-g) {
+              Figure x = h;
+              if (x.height<0) x.height = maxHeight;
+              r+=x;
               }
-     if (nUndefinedRows>0) height = (f.height-definedHeight-size(figArray)*(f.vgap+2*lw)-f.vgap)/nUndefinedRows;
-     return <height, result>;  
+         z+=[r];
+         if (maxHeight<0) nUndefinedRows+=1;
+          }
+     num computedHeight = -1;
+     if (nUndefinedRows>0) computedHeight = (height-definedHeight-size(figArray)*(vgap+2*lw)-vgap-sumLw)/nUndefinedRows;
+     return <computedHeight, z>;  
      }
      
- tuple[num, list[Figure]] getWidthMissingCells(Figure f) {
-     if (f.width<0) return <-1, []>;
-     int lw = round(f.borderWidth);
-     num width = -1;
-     if (lw<0) lw = 0;
-     list[list[Figure]] figArray = [];
-     if (grid():=f) figArray = f.figArray;
-         else if (vcat():=f) figArray= [[h]|h<-f.figs]; 
-         else if (hcat():=f) figArray  = [f.figs]; 
+ tuple[num, list[list[Figure]]] getWidthMissingCells(int width, int lw, int hgap, list[list[Figure]] figArray ) {
+     if (width<0) return <-1, []>;
      figArray = transpose(figArray);
-     // println(figArray);
-     list[Figure] result=[];
      int nUndefinedCols = 0;
      int definedWidth = 0;
+     list[list[Figure]] z =[];
+     int sumLw = 0;
      for (list[Figure] g<- figArray) {
-         bool isDefined = false;
+         list[Figure] r =[];
+         int maxWidth = -1; int maxLw = -1;
          for (Figure h<-g) {
-         if (h.width>0) {
-              isDefined=true;
-              definedWidth+=h.width;
-              }
+              maxWidth= max(h.width, maxWidth);
+              maxLw = max(h.lineWidth, maxLw);
          }
-         if (!isDefined) {
-                 result=concat([result, g]);
-                 nUndefinedCols+=1;
-                 }
+         if (maxWidth>=0) definedWidth= definedWidth+maxWidth;
+         if (maxLw>=0) sumLw+=maxLw;
+         for (Figure h<-g) {
+              Figure x = h;
+              if (x.width<0) x.width = maxWidth;
+              r+=x;
               }
-     if (nUndefinedCols>0) width = (f.width-definedWidth-size(figArray)*(f.hgap+2*lw)-f.vgap)/nUndefinedCols;
+         z+=[r];
+         if (maxWidth<0) nUndefinedCols+=1;
+         }
+     num computedWidth = -1;
+     if (nUndefinedCols>0) computedWidth = (width-definedWidth-size(figArray)*(hgap+2*lw)-hgap-2*sumLw)/nUndefinedCols;
      // println("width=<width>");
-     return <width, result>;  
+     return <computedWidth, transpose(z)>;  
      }
+     
+ Figure pushDim(atXY(num x, num y, Figure g)) {
+      g.at = <x, y>;
+      return pushDim(g);
+      }
      
  Figure pushDim(Figure f:overlay()) {
     if (isEmpty(f.figs)) return f;
@@ -395,16 +402,16 @@ Figure pullDim(Figure f) {
          if (grid():=f) figArray = f.figArray;
          else if (vcat():=f) figArray= [[h]|h<-f.figs]; 
          else if (hcat():=f) figArray  = [f.figs];
-         tuple[num height, list[Figure] figs] cellsH = getHeightMissingCells(f);
-         tuple[num width, list[Figure] figs] cellsW = getWidthMissingCells(f);
+         tuple[num height, list[list[Figure]] figs] cellsH = getHeightMissingCells(f.height, lw, f.vgap, figArray);
+         tuple[num width, list[list[Figure]] figs] cellsW = getWidthMissingCells(f.width, lw, f.hgap, cellsH.figs);
           list[list[Figure]] z =[];
-          for (list[Figure] g<-figArray) {
+          for (list[Figure] g<-cellsW.figs) {
               list[Figure] r = [];
               for (Figure h<-g) {  
-                  Figure z = h;
-                  if (indexOf(cellsW.figs, z)>=0 && cellsW.width>=0) h.width =   round(cellsW.width*h.shrink); 
-                  if (indexOf(cellsH.figs, z)>=0 && cellsH.height>=0) h.height =   round(cellsH.height*h.shrink);     
-                  r += pushDim(h);  
+                  Figure q = h;
+                  if (cellsW.width>=0 && q.width<0) q.width =   round(cellsW.width*q.shrink-q.at[0]-lw); 
+                  if (cellsH.height>=0 && q.height<0) q.height =   round(cellsH.height*q.shrink-q.at[1]-lw); 
+                  r += pushDim(q);  
                   }
               z+=[r];
               }
@@ -445,6 +452,10 @@ Figure pullDim(Figure f) {
     return s;
     }
 */
+
+void translate(tuple[num , num] at, void () g) {
+    salix::SVG::svg(salix::SVG::x("<at[0]>px"), salix::SVG::y("<at[1]>px"), g);
+    }
      
 void eval(emptyFigure()) {;}
 
@@ -452,7 +463,7 @@ void eval(Figure f:root()) {svg(svgSize(f)+[() {eval(f.fig);}]);}
 
 void eval(Figure f:overlay()) {svg(svgSize(f)+[(){for (g<-f.figs) {svg(svgSize(g)+[() {eval(g);}]);}}]);}
 
-void eval(Figure f:box()) {\rect(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
+void eval(Figure f:box()) {translate(f.at, (){\rect(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();});}
 
 void eval(Figure f:shapes::Figure::circle()) {salix::SVG::circle(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 
@@ -514,5 +525,10 @@ void eval(Figure f:grid()) {
 void eval(Figure f:path(list[str] _)) {
                    salix::SVG::g(salix::SVG::transform("translate(<f.at[0]>, <f.at[1]>) scale(<f.scaleX>,<f.scaleY>) "+f.transform),
                           (){salix::SVG::path(fromFigureAttributesToSalix(f));});
+                   }
+
+void eval(Figure f:atXY(num x, num y, Figure g)) {
+                   g.at = <x, y>;
+                   eval(g);
                    }
      
