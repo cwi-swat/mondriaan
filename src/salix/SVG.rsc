@@ -120,7 +120,7 @@ void colorProfile(value vals...) = build(vals, _colorProfile);
 void cursor(value vals...) = build(vals, _cursor);
 void \filter(value vals...) = build(vals, _filter);
 void script(value vals...) = build(vals, _script);
-void style(value vals...) = build(vals, _style);
+// void style(value vals...) = build(vals, _style);
 void view(value vals...) = build(vals, _view);
   
 // basics  

@@ -70,12 +70,20 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    return r; 
    } 
    
- list[value] fromFigureAttributesToSalix(f:shapes::Figure::path(list[str] curve)) {
+ list[value] fromFigureAttributesToSalix(f:shapes::Figure::path(list[str] curve),
+    list[tuple[Figure, str]] markers) {
    list[value] r =[];
    int lwo = round(f.lineWidth); 
    if (lwo<0) lwo = 0;
    if (f.width>=0) r+= salix::SVG::width("<f.width>px"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>px");
+   for (tuple[Figure fig, str lab] m<-markers) {
+        switch(m.lab) {
+             case "startMarker": r+=salix::SVG::style("marker-start:url(#<m.lab>);");
+             case "midMarker":   r+=salix::SVG::style("marker-mid:url(#<m.lab>);");
+             case "endMarker":   r+=salix::SVG::style("marker-end:url(#<m.lab>);");
+             }
+        }
    r+=salix::SVG::vectorEffect("non-scaling-stroke");
    r+=salix::SVG::d(intercalate(" ", curve));
    r+=fromCommonFigureAttributesToSalix(f);
@@ -523,8 +531,21 @@ void eval(Figure f:grid()) {
                    }
                    
 void eval(Figure f:path(list[str] _)) {
+                   list[tuple[Figure fig, str lab]] r =[];
+                   if (emptyFigure()!:=f.startMarker) r += <f.startMarker, "startMarker">;
+                   if (emptyFigure()!:=f.midMarker) r += <f.midMarker, "midMarker">;
+                   if (emptyFigure()!:=f.endMarker) r += <f.endMarker, "endMarker">;
+                   if (!isEmpty(r))
+                             salix::SVG::defs(() {
+                                    for (tuple[Figure fig, str lab] d<-r)
+                                          salix::SVG::marker(salix::SVG::id(d.lab), () {
+                                               eval(d.fig);
+                                               });
+                                   });   
                    salix::SVG::g(salix::SVG::transform("translate(<f.at[0]>, <f.at[1]>) scale(<f.scaleX>,<f.scaleY>) "+f.transform),
-                          (){salix::SVG::path(fromFigureAttributesToSalix(f));});
+                          (){                        
+                             salix::SVG::path(fromFigureAttributesToSalix(f, r));
+                            });
                    }
 
 void eval(Figure f:atXY(num x, num y, Figure g)) {
