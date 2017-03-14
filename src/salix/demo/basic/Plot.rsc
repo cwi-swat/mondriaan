@@ -29,22 +29,26 @@ Model init() = startModel;
 
 
 Figure testFigure(Model m) {
-     int n  = 10;
-     return box(lineWidth=2, lineColor="black", fig=overlay(size=<round(100*2*PI()), 200>, figs=[
-       path([p_.M(0, sin(2*PI()*m[0].x))]+[p_.L(m[0].f*2*PI()*i/n, sin(2*PI()*(i/n+m[0].x)))|num i<-[1, 2..n+1]]
-       ,scaleX=100, scaleY=-100, at=<0, 100>, fillColor="none", lineColor="red", midMarker=circle(r=10, fillColor="brown"))
-      ,path([p_.M(0, cos(2*PI()*m[1].x))]+[p_.L(m[1].f*2*PI()*i/n, cos(2*PI()*(i/n+m[1].x)))|num i<-[1,2..n+1]]
-       ,scaleX=100, scaleY=-100, at=<0, 100>, fillColor="none", lineColor="blue")
-       ]));
+     int n  = 20;
+     return vcat(vgap=10, width = round(100*2*PI()), figs=[
+       box(lineWidth=2, lineColor="black",  fig=overlay(size=<round(100*2*PI()), 210>, figs=[
+       path([p_.M(0, sin(m[0].x))]+[p_.L(m[0].f*2*PI()*i/n, sin(2*PI()*(i/n)+m[0].x))|num i<-[1, 2..n+1]]
+       ,scaleX=100, scaleY=-100, at=<0, 105>, fillColor="none", lineColor="red", midMarker=circle(r=3, fillColor="black"))
+       ,path([p_.M(0, cos(m[1].x))]+[p_.L(m[1].f*2*PI()*i/n, cos(2*PI()*(i/n)+m[1].x))|num i<-[1,2..n+1]]
+       ,scaleX=100, scaleY=-100, at=<0, 105>, fillColor="none", lineColor="blue", midMarker=box(size=<6, 6>, lineColor="black"))
+       ]))
+       , hcat(height=30,  /*width = round(100*2*PI()),*/ align = topLeft, hgap=0, figs=[
+              box(fig=htmlText("sin: x=<m[0].x>", fontColor="red"), lineColor="black"), box(fig=htmlText("cos: x=<m[1].x>", fontColor="blue"), lineColor="black")])
+       ]);
      }
      
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m), width = 800, height = 700);  
+        fig(testFigure(m), width = 800, height = 350);  
         slider([[
-                  [<moveX, 0, "sin:", 0, 3, 0.1, 0> ]
-                 ,[<moveX, 1, "cos:", 0, 3, 0.1, 0> ]
+                  [<moveX, 0, "sin:", 0, 3.14, 0.1, 0> ]
+                 ,[<moveX, 1, "cos:", 0, 3.14, 0.1, 0> ]
                  ]]);   
         });
     }

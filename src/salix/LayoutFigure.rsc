@@ -5,6 +5,7 @@ import salix::HTML;
 import salix::App;
 import salix::Core;
 import shapes::Figure;
+import util::Reflective;
 import Prelude;
 
 data Figure = root(Figure fig= emptyFigure());
@@ -78,11 +79,11 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    if (f.width>=0) r+= salix::SVG::width("<f.width>px"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>px");
    for (tuple[Figure fig, str lab] m<-markers) {
-        switch(m.lab) {
-             case "startMarker": r+=salix::SVG::style("marker-start:url(#<m.lab>);");
-             case "midMarker":   r+=salix::SVG::style("marker-mid:url(#<m.lab>);");
-             case "endMarker":   r+=salix::SVG::style("marker-end:url(#<m.lab>);");
-             }
+        if (startsWith(m.lab, "startMarker")) r+=salix::SVG::style("marker-start:url(#<m.lab>);");
+        else
+        if (startsWith(m.lab, "midMarker")) r+=salix::SVG::style("marker-mid:url(#<m.lab>);");
+        else
+        if (startsWith(m.lab, "endMarker")) r+=salix::SVG::style("marker-end:url(#<m.lab>);");             
         }
    r+=salix::SVG::vectorEffect("non-scaling-stroke");
    r+=salix::SVG::d(intercalate(" ", curve));
@@ -223,6 +224,13 @@ Figure pullDim(atXY(num x, num y, Figure g)) {
       g.at = <x, y>;
       return pullDim(g);
       }
+      
+Figure pullDim(Figure f:path(list[str] _)) {
+      if (emptyFigure()!:=f.startMarker) f.startMarker = pullDim(f.startMarker);
+      if (emptyFigure()!:=f.midMarker) f.midMarker = pullDim(f.midMarker);
+      if (emptyFigure()!:=f.endMarker) f.endMarker = pullDim(f.endMarker);
+      return f;
+      }
 
 Figure pullDim(Figure f:overlay()) {
     if (f.size != <0, 0>) {
@@ -273,7 +281,7 @@ default Figure pullDim(Figure f) {
          if (grid():=f) figArray = f.figArray;
          else if (vcat():=f) figArray= [[h]|h<-f.figs]; 
          else if (hcat():=f) figArray  = [f.figs];
-         list[int] maxColWidth = [0|_<-[0..max([size(g)|g<-figArray])]];
+         list[int] maxColWidth = [-1|_<-[0..max([size(g)|g<-figArray])]];
          for (list[Figure] g<- figArray) {
             list[Figure] r = [];
             int h1 = 0;
@@ -364,11 +372,10 @@ default Figure pullDim(Figure f) {
               r+=x;
               }
          z+=[r];
-         if (maxWidth<0) nUndefinedCols+=1;
+         if (maxWidth<0) nUndefinedCols+=1;    
          }
      num computedWidth = -1;
      if (nUndefinedCols>0) computedWidth = (width-definedWidth-size(figArray)*(hgap+2*lw)-hgap-2*sumLw)/nUndefinedCols;
-     // println("width=<width>");
      return <computedWidth, transpose(z)>;  
      }
      
@@ -480,7 +487,7 @@ void eval(Figure f:shapes::Figure::ellipse()) {salix::SVG::ellipse(fromFigureAtt
 void eval(Figure f:htmlText(value v)) {
      int lw = round(f.lineWidth); 
      if (lw<0) lw = 0;
-     int width = round(f.width); int height = round(f.height); 
+     int width = f.width; int height = f.height; 
      list[value] foreignObjectArgs = [style(<"line-height", "1.5">)];
      if (width>=0) foreignObjectArgs+= salix::SVG::width("<width-lw>px");
      if (height>=0) foreignObjectArgs+= salix::SVG::height("<height-lw>px");
@@ -532,16 +539,25 @@ void eval(Figure f:grid()) {
                    
 void eval(Figure f:path(list[str] _)) {
                    list[tuple[Figure fig, str lab]] r =[];
-                   if (emptyFigure()!:=f.startMarker) r += <f.startMarker, "startMarker">;
-                   if (emptyFigure()!:=f.midMarker) r += <f.midMarker, "midMarker">;
-                   if (emptyFigure()!:=f.endMarker) r += <f.endMarker, "endMarker">;
+                   int startCode =  getFingerprintNode(f.startMarker);
+                   int midCode =  getFingerprintNode(f.midMarker);
+                   int endCode =  getFingerprintNode(f.endMarker);
+                   if (emptyFigure()!:=f.startMarker) r += <f.startMarker,startCode>0?"startMarker<startCode>":"startMarkerX<startCode>">;
+                   if (emptyFigure()!:=f.midMarker)   r += <f.midMarker, midCode>0?"midMarker<midCode>":"midMarkerX<midCode>">;
+                   if (emptyFigure()!:=f.endMarker)   r += <f.endMarker, endCode>0?"endMarker<endCode>":"endMarkerX<endCode>">;
+                   // println("fingerPrint: <getFingerprintNode(f.midMarker)>");
                    if (!isEmpty(r))
-                             salix::SVG::defs(() {
-                                    for (tuple[Figure fig, str lab] d<-r)
-                                          salix::SVG::marker(salix::SVG::id(d.lab), () {
-                                               eval(d.fig);
-                                               });
-                                   });   
+                            salix::SVG::defs(() {
+                            for (tuple[Figure fig, str lab] d<-r)
+                            salix::SVG::marker(salix::SVG::id(d.lab), markerWidth("<d[0].width/abs(f.scaleX)>px"), markerHeight("<d[0].height/abs(f.scaleY)>px"),
+                              refX("<d[0].width/abs(2.0*f.scaleX)>px"), refY("<d[0].height/abs(f.scaleY*2.0)>px"), orient("auto"),
+                              () {
+                                 salix::SVG::g(salix::SVG::transform("scale(<1/f.scaleX>,<1/abs(f.scaleY)>) "),
+                                 (){                                               
+                                             eval(d.fig);
+                                   });
+                            });                    
+                         });   
                    salix::SVG::g(salix::SVG::transform("translate(<f.at[0]>, <f.at[1]>) scale(<f.scaleX>,<f.scaleY>) "+f.transform),
                           (){                        
                              salix::SVG::path(fromFigureAttributesToSalix(f, r));

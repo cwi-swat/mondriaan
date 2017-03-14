@@ -50,7 +50,7 @@ void slider(list[list[list[tuple[Msg(int, real) msg, int id, str label, num low,
        list[tuple[str, str]] styles=[];     
        styles += <"border-spacing", "5px 5px">;
        styles+= <"border-collapse", "separate">;
-       styles+= <"width", "1000px">;
+       // styles+= <"width", "1000px">;
        table(salix::HTML::style(styles), (){
             for (list[list[tuple[Msg(int, real) msg, int id, str label, num low, num high, num step, num val]]] slids<-sliders) {
                 tableRow(slids);                      
