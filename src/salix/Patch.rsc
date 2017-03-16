@@ -37,6 +37,8 @@ data Edit
   | removeAttr(str name)
   | removeProp(str name)
   | removeEvent(str name)
+  | setExtra(str name, value \value)
+  | removeExtra(str name)
   ; 
 
 @doc{Applying a patch to an Node node; only for testing.}

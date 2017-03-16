@@ -70,7 +70,7 @@ Figure stack1(Figure f) = vcat(align=centerMid, vgap=4, figs=[box(grow=1.2, fig=
 
 App[Model] testApp() {
    return app(init, myView, update, 
-    |http://localhost:9103|, |project://salix/src|);
+    |http://localhost:9103|, |project://mondriaan/src|);
    }
    
 public App[Model] c = testApp();

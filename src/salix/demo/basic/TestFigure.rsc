@@ -86,7 +86,7 @@ void myView(Model m) {
 
 App[Model] testApp() {
    return app(init, myView, update, 
-    |http://localhost:9103|, |project://salix/src|);
+    |http://localhost:9103|, |project://mondriaan/src|);
    }
    
 public App[Model] c = testApp();

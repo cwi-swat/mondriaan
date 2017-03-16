@@ -9,12 +9,37 @@
 <script src="/salix/lib/simple.js"></script>
 <script src="/salix/lib/salix-cm.js"></script>
 <script src="/salix/salix.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="/salix/lib/dagre-d3.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/salix/lib/salix-dagre.js"></script>
 <script>
   var salix = new Salix();
   registerCodeMirror(salix);
+  registerDagre(salix);
   $(document).ready(salix.start);
 </script>
-<style>.description {overflow:auto}</style>
+<style  id="css">
+.description {overflow:auto}
+text { 
+  font-weight: 300; 
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serf; 
+  font-size: 14px; 
+} 
+/*
+.node {
+  stroke: #333;
+  fill: #fff;
+  stroke-width: 1.5px;
+}
+*/
+
+.edgePath path {
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+</style>
 <body>
 <div class="container">
   <div id="root">

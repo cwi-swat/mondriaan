@@ -125,6 +125,14 @@ Node render(&T model, void(&T) block) {
 }
 
 
+Node render(void() block) {
+  //initViewContext(block);
+   push([]);     block();
+  // TODO: assert top is not empty and size == 1
+   return pop()[0];
+}
+
+
 @doc{The basic build function to construct html elements on the stack.
 The list of argument values can contain any number of Attr values.
 The last argument (if any) can be a block, an Node node, or a value.
