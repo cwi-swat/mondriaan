@@ -351,7 +351,6 @@ function createNodes(selection, g, shapes) {
         labelDom = addLabel(labelGroup, node),
         shape = shapes[node.shape],
         bbox = _.pick(labelDom.node().getBBox(), "width", "height");
-
     node.elem = this;
 
     if (node.id) { thisGroup.attr("id", node.id); }
@@ -359,8 +358,8 @@ function createNodes(selection, g, shapes) {
     util.applyClass(thisGroup, node["class"],
       (thisGroup.classed("update") ? "update " : "") + "node");
 
-    if (_.has(node, "width")) { bbox.width = node.width; }
-    if (_.has(node, "height")) { bbox.height = node.height; }
+    if (_.has(node, "width")) { bbox.width = parseInt(node.width); }  // Bert
+    if (_.has(node, "height")) { bbox.height = parseInt(node.height); }  // Bert
 
     bbox.width += node.paddingLeft + node.paddingRight;
     bbox.height += node.paddingTop + node.paddingBottom;
@@ -650,11 +649,11 @@ function addHtmlLabel(root, node) {
   var div = fo
     .append("xhtml:div");
   div.attr("xmlns", "http://www.w3.org/1999/xhtml");
-
   var label = node.label;
   switch(typeof label) {
     case "function":
       div.insert(label);
+      fo.style("line-height", "0");
       break;
     case "object":
       // Currently we assume this is a DOM object.
@@ -667,12 +666,12 @@ function addHtmlLabel(root, node) {
   div.style("display", "inline-block");
   // Fix for firefox
   div.style("white-space", "nowrap");
-
   var client = div[0][0].getBoundingClientRect();
+  // alert(div[0][0].nodeName);
   fo
     .attr("width", client.width)
-    .attr("height", client.height); 
-
+    .attr("height", client.height)
+    ;
   return fo;
 }
 
@@ -709,6 +708,7 @@ function addLabel(root, node, location) {
     default:
       y = (-labelBBox.height / 2);
   }
+  // alert(labelBBox.height);
   labelSvg.attr("transform",
                 "translate(" + (-labelBBox.width / 2) + "," + y + ")");
 
@@ -956,10 +956,10 @@ function render() {
 }
 
 var NODE_DEFAULT_ATTRS = {
-  paddingLeft: 10,
-  paddingRight: 10,
-  paddingTop: 10,
-  paddingBottom: 10,
+  paddingLeft: 0,
+  paddingRight: 0,
+  paddingTop: 0,
+  paddingBottom: 0,
   rx: 0,
   ry: 0,
   shape: "rect"

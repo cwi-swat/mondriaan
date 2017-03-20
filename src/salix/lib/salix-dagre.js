@@ -20,7 +20,7 @@ function registerDagre(salix) {
 				var myDomNode = undefined;
 				salix.build(label, function(kid) {
 					myDomNode = kid;
-				});
+				});				
 				return myDomNode;
 			};
 		}
@@ -28,11 +28,11 @@ function registerDagre(salix) {
 		for (var i = 0; i < nodes.length; i++) {
 			var theNode = nodes[i].gnode;
 			var nodeAttrs = {};
-			nodeAttrs.label = labelBuilder(theNode.label);		
+			nodeAttrs.label = labelBuilder(theNode.label);	
 			for (var k in theNode.attrs) {
 				if (theNode.attrs.hasOwnProperty(k)) {
-					nodeAttrs[k] = theNode.attrs[k];
-				}
+				 	nodeAttrs[k] = theNode.attrs[k];
+				 }
 			}
 			g.setNode(theNode.id, nodeAttrs);
 		}
@@ -70,7 +70,6 @@ function registerDagre(salix) {
 		
 		var render = new dagreD3.render();
 		render(svgGroup, g);
-		
 		function patch(edits, attach) {
 			edits = edits || [];
 			var newNodes;
@@ -137,10 +136,11 @@ function registerDagre(salix) {
 				render(svgGroup, newG);
 			}
 			
+			
 		}
-		
-        
+		   
 		_svg.salix_native = {patch: patch};
+		svg.attr("viewBox","0 0 "+g.graph().width+" "+g.graph().height);
 		return _svg;
 	}
 	

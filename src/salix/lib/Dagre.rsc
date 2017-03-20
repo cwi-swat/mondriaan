@@ -108,6 +108,7 @@ void dagre(str gid, value vals...) {
     if (vals != []) {
       if (void() labelFunc := vals[-1]) {
         Node label = render(labelFunc);
+        // println("n label: <label>");
         myNode.label = label;
       }
       else if (str label := vals[-1]) {

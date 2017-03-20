@@ -5,6 +5,7 @@ import salix::HTML;
 import salix::App;
 import salix::Core;
 import shapes::Figure;
+import salix::lib::Dagre;
 import util::Reflective;
 import Prelude;
 
@@ -36,7 +37,7 @@ value hAlign(Alignment align) {
    list[value] r =[];    
    if (!isEmpty(f.fillColor)) r+= salix::SVG::fill(f.fillColor);
    if (!isEmpty(f.lineColor)) r+= salix::SVG::stroke(f.lineColor);
-   if (f.lineWidth>=0) r+= salix::SVG::strokeWidth("<f.lineWidth>px");
+   if (f.lineWidth>=0) r+= salix::SVG::strokeWidth("<f.lineWidth>");
    if (!isEmpty(f.visibility)) r+= salix::SVG::visibility(f.visibility);
    if (Event q:= f.event)  if (onclick(Msg msg):=q) r+=salix::SVG::onClick(msg);
    return r;
@@ -47,9 +48,9 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    int lwo = round(f.lineWidth); 
    if (lwo<0) lwo = 0;
    if (f.r<0 && f.width>=0 && f.height>=0) f.r = max(f.width, f.height)/2;
-        if (f.r>=0) {r+= salix::SVG::r("<f.r>px");
-                r+= salix::SVG::cx("<f.at[0]+f.r+lwo/2>px");
-                r+= salix::SVG::cy("<f.at[1]+f.r+lwo/2>px");
+        if (f.r>=0) {r+= salix::SVG::r("<f.r>");
+                r+= salix::SVG::cx("<f.at[0]+f.r+lwo/2>");
+                r+= salix::SVG::cy("<f.at[1]+f.r+lwo/2>");
                 }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -61,11 +62,11 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    if (lwo<0) lwo = 0;
    if (f.rx<0 && f.width>=0) f.rx = f.width/2;
         if (f.ry<0 && f.height>=0) f.ry = f.height/2;
-        if (f.rx>=0) {r+= salix::SVG::rx("<f.rx>px");
-                      r+= salix::SVG::cx("<f.at[0]+f.rx+lwo/2>px");
+        if (f.rx>=0) {r+= salix::SVG::rx("<f.rx>");
+                      r+= salix::SVG::cx("<f.at[0]+f.rx+lwo/2>");
                       }
-        if (f.ry>=0) {r+= salix::SVG::ry("<f.ry>px");
-                      r+= salix::SVG::cy("<f.at[1]+f.ry+lwo/2>px");
+        if (f.ry>=0) {r+= salix::SVG::ry("<f.ry>");
+                      r+= salix::SVG::cy("<f.at[1]+f.ry+lwo/2>");
                       }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -76,8 +77,8 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    list[value] r =[];
    int lwo = round(f.lineWidth); 
    if (lwo<0) lwo = 0;
-   if (f.width>=0) r+= salix::SVG::width("<f.width>px"); 
-   if (f.height>=0) r+= salix::SVG::height("<f.height>px");
+   if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height>");
    for (tuple[Figure fig, str lab] m<-markers) {
         if (startsWith(m.lab, "startMarker")) r+=salix::SVG::style("marker-start:url(#<m.lab>);");
         else
@@ -95,9 +96,9 @@ default list[value] fromFigureAttributesToSalix(Figure f) {
    list[value] r =[];
    int lwo = round(f.lineWidth); 
    if (lwo<0) lwo = 0;
-   if (f.width>=0) r+= salix::SVG::width("<f.width>px"); 
-   if (f.height>=0) r+= salix::SVG::height("<f.height>px");
-   r+= salix::SVG::x("<lwo/2>px"); r+= salix::SVG::y("<lwo/2>px");
+   if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height>");
+   r+= salix::SVG::x("<lwo/2>"); r+= salix::SVG::y("<lwo/2>");
    r+=fromCommonFigureAttributesToSalix(f);
    return r;
    }
@@ -106,8 +107,8 @@ list[value] svgSize(Figure f) {
    list[value] r =[];
    int lw = round(f.lineWidth); 
    if (lw<0) lw = 0;
-   if (f.width>=0) r+= salix::SVG::width("<f.width+f.at[0]+lw>px"); 
-   if (f.height>=0) r+= salix::SVG::height("<f.height+f.at[1]+lw>px");
+   if (f.width>=0) r+= salix::SVG::width("<f.width+f.at[0]+lw>"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height+f.at[1]+lw>");
    return r;
    }
    
@@ -115,7 +116,7 @@ list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
     list[tuple[str, str]] styles=[]; 
     if (!svg) styles+= <"overflow", f.overflow>; 
     int fontSize = (f.fontSize>=0)?f.fontSize:12;
-    styles+=<"font-size", "<fontSize>px">;
+    styles+=<"font-size", "<fontSize>">;
     if (!isEmpty(f.fontStyle)) styles+=<"font-style", f.fontStyle>;
     if (!isEmpty(f.fontFamily)) styles+=<"font-family", f.fontFamily>;
     if (!isEmpty(f.fontWeight)) styles+= <"font-weight", f.fontWeight>;
@@ -123,15 +124,15 @@ list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
     if (!isEmpty(f.fontColor)) styles+=<(svg?"fill":"color"), f.fontColor>;
     if (svg) {
         if (!isEmpty(f.fontLineColor)) styles+= <"stroke",f.fontLineColor>;
-        if (f.fontLineWidth>=0) styles+=<"stroke-width", "<f.fontLineWidth>px">;
+        if (f.fontLineWidth>=0) styles+=<"stroke-width", "<f.fontLineWidth>">;
         styles+=<"text-anchor", "middle">;
         }
-    if (f.width>=0) styles+= <"width", "<f.width>px">; 
-    if (f.height>=0) styles+= <"height", "<f.height>px">;
+    if (f.width>=0) styles+= <"width", "<f.width>">; 
+    if (f.height>=0) styles+= <"height", "<f.height>">;
     list[value] r =[salix::HTML::style(styles)];
     if (svg) {
-        if (f.width>=0) r+=salix::SVG::x("<f.width/2>px");
-        if (f.height>=0) r+=salix::SVG::y("<f.height/2+6>px");
+        if (f.width>=0) r+=salix::SVG::x("<f.width/2>");
+        if (f.height>=0) r+=salix::SVG::y("<f.height/2+6>");
         }
     return r;
    }
@@ -139,18 +140,18 @@ list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
 list[value] fromTableModelToProperties(Figure f) {
     list[value] r =[];
     list[tuple[str, str]] styles=[];     
-        styles += <"border-spacing", "<f.hgap>px <f.vgap>px">;
+        styles += <"border-spacing", "<f.hgap> <f.vgap>">;
         styles+= <"border-collapse", "separate">;
-        //if (f.width>=0) styles+= <"width", "<f.width>px">; 
-        // if (f.height>=0) styles+= <"height", "<f.height>px">;
+        //if (f.width>=0) styles+= <"width", "<f.width>">; 
+        // if (f.height>=0) styles+= <"height", "<f.height>">;
         r+=salix::HTML::style(styles);
         return r;    
    }
    
 list[value] fromTdModelToProperties(Figure f, Figure g) {
     list[tuple[str, str]] styles = [<"padding", 
-    "<round(g.padding[1])>px <round(g.padding[2])>px <round(g.padding[3])>px <round(g.padding[0])>px">];
-    if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
+    "<round(g.padding[1])> <round(g.padding[2])> <round(g.padding[3])> <round(g.padding[0])>">];
+    if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>">;
     if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
     if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
     list[value] r =[salix::HTML::style(styles)];
@@ -168,12 +169,12 @@ void() innerFig(Figure outer, Figure inner) {
        int widtho = round(outer.width); int heighto = round(outer.height);
        int widthi = round(inner.width); int heighti = round(inner.height);    
        list[value] svgArgs = [];
-       if (widthi>=0) svgArgs+= salix::SVG::width("<widthi+lwi+inner.at[0]>px");
-       if (heighti>=0) svgArgs+= salix::SVG::height("<heighti+lwi+inner.at[1]>px");
+       if (widthi>=0) svgArgs+= salix::SVG::width("<widthi+lwi+inner.at[0]>");
+       if (heighti>=0) svgArgs+= salix::SVG::height("<heighti+lwi+inner.at[1]>");
        list[value] foreignObjectArgs = [style(<"line-height", "0">)];
-       if (widtho>=0) foreignObjectArgs+= salix::SVG::width("<widtho-lwo>px");
-       if (heighto>=0) foreignObjectArgs+= salix::SVG::height("<heighto-lwo>px");
-       foreignObjectArgs+= salix::SVG::x("<lwo>px"); foreignObjectArgs+= salix::SVG::y("<lwo>px");
+       if (widtho>=0) foreignObjectArgs+= salix::SVG::width("<widtho-lwo>");
+       if (heighto>=0) foreignObjectArgs+= salix::SVG::height("<heighto-lwo>");
+       foreignObjectArgs+= salix::SVG::x("<lwo>"); foreignObjectArgs+= salix::SVG::y("<lwo>");
        list[value] tdArgs = fromTdModelToProperties(outer, inner);
        list[value] tableArgs = foreignObjectArgs; 
        foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[(){svg(svgArgs+[(){eval(inner);}]);}]);});}]);}]);
@@ -188,8 +189,8 @@ void() tableCells(Figure f, list[Figure] g) {
        int width = round(h.width); int height = round(h.height);
        int lw = round(h.lineWidth);
        if (lw<0) lw = 0;
-       if (width>=0) svgArgs+= salix::SVG::width("<width+lw+h.at[0]>px");
-       if (height>=0) svgArgs+= salix::SVG::height("<height+lw+h.at[1]>px");
+       if (width>=0) svgArgs+= salix::SVG::width("<width+lw+h.at[0]>");
+       if (height>=0) svgArgs+= salix::SVG::height("<height+lw+h.at[1]>");
        list[value] tdArgs = fromTdModelToProperties(f, h); 
        r+= [() {
            salix::HTML::td(tdArgs+[(){svg(svgArgs+[(){eval(w);}]);}]);
@@ -229,6 +230,19 @@ Figure pullDim(Figure f:path(list[str] _)) {
       if (emptyFigure()!:=f.startMarker) f.startMarker = pullDim(f.startMarker);
       if (emptyFigure()!:=f.midMarker) f.midMarker = pullDim(f.midMarker);
       if (emptyFigure()!:=f.endMarker) f.endMarker = pullDim(f.endMarker);
+      return f;
+      }
+      
+ Figure pullDim(Figure f:shapes::Figure::graph()) {
+      if (f.size != <0, 0>) {
+          if (f.width<0) f.width = f.size[0];
+          if (f.height<0) f.height = f.size[1];
+       }
+      list[tuple[str, Figure]] r = [];
+      for (tuple[str id, Figure fig] d<-f.nodes) {
+            r+=[<d.id, pullDim(d.fig)>];
+            }
+      f.nodes = r;
       return f;
       }
 
@@ -396,6 +410,19 @@ default Figure pullDim(Figure f) {
     f.figs = [pushDim(h)|h<-z];
     return f;
     }
+    
+ Figure pushDim(Figure f:shapes::Figure::graph()) {
+      if (f.size != <0, 0>) {
+          if (f.width<0) f.width = f.size[0];
+          if (f.height<0) f.height = f.size[1];
+       }
+      list[tuple[str, Figure]] r = [];
+      for (tuple[str id, Figure fig] d<-f.nodes) {
+            r+=[<d.id, pushDim(d.fig)>];
+            }
+      f.nodes = r;
+      return f;
+      }
      
  Figure pushDim(Figure f) {
      if (f.size != <0, 0>) {
@@ -469,7 +496,7 @@ default Figure pullDim(Figure f) {
 */
 
 void translate(tuple[num , num] at, void () g) {
-    salix::SVG::svg(salix::SVG::x("<at[0]>px"), salix::SVG::y("<at[1]>px"), g);
+    salix::SVG::svg(salix::SVG::x("<at[0]>"), salix::SVG::y("<at[1]>"), g);
     }
      
 void eval(emptyFigure()) {;}
@@ -489,19 +516,19 @@ void eval(Figure f:htmlText(value v)) {
      if (lw<0) lw = 0;
      int width = f.width; int height = f.height; 
      list[value] foreignObjectArgs = [style(<"line-height", "1.5">)];
-     if (width>=0) foreignObjectArgs+= salix::SVG::width("<width-lw>px");
-     if (height>=0) foreignObjectArgs+= salix::SVG::height("<height-lw>px");
-     foreignObjectArgs+= salix::SVG::x("<lw>px"); foreignObjectArgs+= salix::SVG::y("<lw>px");
+     if (width>=0) foreignObjectArgs+= salix::SVG::width("<width-lw>");
+     if (height>=0) foreignObjectArgs+= salix::SVG::height("<height-lw>");
+     foreignObjectArgs+= salix::SVG::x("<lw>"); foreignObjectArgs+= salix::SVG::y("<lw>");
      list[tuple[str, str]] styles = [<"padding", 
-                                      "<round(f.padding[1])>px <round(f.padding[2])>px <round(f.padding[3])>px <round(f.padding[0])>px">];
-     if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
+                                      "<round(f.padding[1])> <round(f.padding[2])> <round(f.padding[3])> <round(f.padding[0])>">];
+     if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>">;
      if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
      if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
      if (htmlText(_):=f) {
-          if(f.width>=0)  styles+= <"max-width", "<f.width>px">;
-          if(f.height>=0)  styles+= <"max-height", "<f.height>px">;
-          if(f.width>=0)  styles+= <"min-width", "<f.width>px">;
-          if(f.height>=0)  styles+= <"min-height", "<f.height>px">;
+          if(f.width>=0)  styles+= <"max-width", "<f.width>">;
+          if(f.height>=0)  styles+= <"max-height", "<f.height>">;
+          if(f.width>=0)  styles+= <"min-width", "<f.width>">;
+          if(f.height>=0)  styles+= <"min-height", "<f.height>">;
           }
      list[value] tdArgs =[salix::HTML::style(styles)];
      tdArgs += hAlign(f.align);
@@ -517,23 +544,23 @@ void eval(Figure f:htmlText(value v)) {
     
 void eval(Figure f:vcat()) {
                    list[value] foreignObjectArgs = [style(<"line-height", "0">)];
-                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>px");
-                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>px");
+                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>");
+                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>");
                    foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
                    }
                    
 void eval(Figure f:hcat()) {
                    list[value] foreignObjectArgs = [style(<"line-height", "0">)];
-                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>px");
-                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>px");
+                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>");
+                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>");
                    foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
                    }
  
 
 void eval(Figure f:grid()) {
                    list[value] foreignObjectArgs = [style(<"line-height", "0">)];
-                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>px");
-                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>px");
+                   if (f.width>=0) foreignObjectArgs+= salix::SVG::width("<f.width>");
+                   if (f.height>=0) foreignObjectArgs+= salix::SVG::height("<f.height>");
                    foreignObject(foreignObjectArgs+[(){salix::HTML::table(fromTableModelToProperties(f)+[tableRows(f)]);}]);
                    }
                    
@@ -549,8 +576,8 @@ void eval(Figure f:path(list[str] _)) {
                    if (!isEmpty(r))
                             salix::SVG::defs(() {
                             for (tuple[Figure fig, str lab] d<-r)
-                            salix::SVG::marker(salix::SVG::id(d.lab), markerWidth("<d[0].width/abs(f.scaleX)>px"), markerHeight("<d[0].height/abs(f.scaleY)>px"),
-                              refX("<d[0].width/abs(2.0*f.scaleX)>px"), refY("<d[0].height/abs(f.scaleY*2.0)>px"), orient("auto"),
+                            salix::SVG::marker(salix::SVG::id(d.lab), markerWidth("<d[0].width/abs(f.scaleX)>"), markerHeight("<d[0].height/abs(f.scaleY)>"),
+                              refX("<d[0].width/abs(2.0*f.scaleX)>"), refY("<d[0].height/abs(f.scaleY*2.0)>"), orient("auto"),
                               () {
                                  salix::SVG::g(salix::SVG::transform("scale(<1/f.scaleX>,<1/abs(f.scaleY)>) "),
                                  (){                                               
@@ -563,6 +590,20 @@ void eval(Figure f:path(list[str] _)) {
                              salix::SVG::path(fromFigureAttributesToSalix(f, r));
                             });
                    }
+                   
+ void eval(Figure f:shapes::Figure::graph()) {
+                 // println("graph found");
+                  dagre("myGraph", width("<f.width>"), height("<f.height>"), (N n, E e) {
+                       for (tuple[str id, Figure fig] d<-f.nodes) {
+                           int lw = d.fig.lineWidth>=0?round(d.fig.lineWidth):0;
+                           n(d.id,salix::lib::Dagre::shape("rect"), width("<d.fig.width+lw>"), height("<d.fig.height+lw>"),
+                               (){svg(svgSize(d.fig)+[() {eval(d.fig);}]);});
+                           }
+                       for (Edge edg <- f.edges)
+                           if (edge(str from, str to):=edg) 
+                           e(from, to, lineInterpolate("linear"));
+                        });
+                  }
 
 void eval(Figure f:atXY(num x, num y, Figure g)) {
                    g.at = <x, y>;
