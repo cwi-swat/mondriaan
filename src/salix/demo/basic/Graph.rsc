@@ -47,6 +47,15 @@ Figure tab() = grid(height=60, figArray=[[box(fillColor="beige", width=30), box(
                 , [box(fillColor="navy"), box(fillColor="gold")]
                 , [box(fillColor="whitesmoke"), box(fillColor="lightgrey")]
                 ]);
+      
+ Figure crc(str color) = shapes::Figure::ellipse(rx=30, ry=20, fillColor=color);
+ 
+ Figure bx(str color) = box(fillColor=color, size=<60, 60>);
+ 
+ tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] gr() {
+      return <[<"a", crc("magenta")>, <"b", crc("yellow")>, <"c", bx("navy")>], 
+                [edge("a", "b"), edge("b","c"), edge("a","c")]>;
+      } 
                 
 void myView(Model m) {
     div(() {
@@ -60,15 +69,16 @@ void myView(Model m) {
         //     e("a", "b", lineInterpolate("linear"));
         //     });
         
-        list[tuple[str, Figure]] nodes = [
-            <"a"
-                 // , box(size=<30, 30>, fillColor="red", lineWidth=4, lineColor="black")
-                  , tab()
-                  >
-           ,<"b", shapes::Figure::circle(r=35, lineWidth= 2, fillColor="blue", lineColor="black")>
-           ];
-         list[Edge] edges = [edge("a", "b")];
-         fig(shapes::Figure::graph(nodes=nodes, edges = edges, width=200, height=200), width = 800, height = 800);
+        //list[tuple[str, Figure]] nodes = [
+        //    <"a"
+        //         // , box(size=<30, 30>, fillColor="red", lineWidth=4, lineColor="black")
+        //          , tab()
+        //          >
+        //   ,<"b", shapes::Figure::circle(r=35, lineWidth= 2, fillColor="blue", lineColor="black")>
+        //   ];
+        // list[Edge] edges = [edge("a", "b")];
+         tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr();
+         fig(shapes::Figure::graph(nodes=g.nodes, edges = g.edges, width=200, height=200), width = 800, height = 800);
          });   
     }
     

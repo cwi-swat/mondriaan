@@ -27,6 +27,22 @@ data Msg
 
 Model init() = startModel;
 
+//Figure nGon(Model m, int n, int r, num angle) {
+//       num shift = 1.0;
+//       list[str] pth = [p_.M(-1, 0)];
+//       pth += [p_.L(-cos(phi), sin(phi))|num phi<-[2*PI()/n, 4*PI()/n..2*PI()]];
+//       pth += [p_.Z()];
+//       return box(lineColor="red", fig=
+//           path(pth, scaleX = r, scaleY = r, transform=t_.t(shift, shift)+t_.r(angle, 0, 0)
+//           , fillColor="none", lineColor="black", lineWidth=6, width = 2*r, height= 2*r)
+//       );
+//       }
+
+Figure nGon(Model m) {
+       return circle(lineColor="red", lineWidth=4, fig=
+            ngon(n=3, r=50, angle=0, lineColor="black", lineWidth=6));
+       }
+
 
 Figure testFigure(Model m) {
      int n  = 20;
@@ -45,7 +61,9 @@ Figure testFigure(Model m) {
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m), width = 800, height = 350);  
+        // fig(testFigure(m), width = 800, height = 350); 
+        // fig(nGon(m, 4, 50, 0), width = 800, height = 350); 
+        fig(nGon(m)); 
         slider([[
                   [<moveX, 0, "sin:", 0, 3.14, 0.1, 0> ]
                  ,[<moveX, 1, "cos:", 0, 3.14, 0.1, 0> ]

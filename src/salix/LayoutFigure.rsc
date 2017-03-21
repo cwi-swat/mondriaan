@@ -90,7 +90,21 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    r+=salix::SVG::d(intercalate(" ", curve));
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
-   }  
+   }
+   
+list[value] fromFigureAttributesToSalix(f:shapes::Figure::ngon(),
+        list[str] curve) {
+   list[value] r =[];
+   int lwo = round(f.lineWidth/cos(PI()/f.n)); 
+   if (lwo<0) lwo = 0;
+   if (f.width>=0) r+= salix::SVG::width("<f.width+0>"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height+0>");
+   r+=salix::SVG::vectorEffect("non-scaling-stroke");
+   r+=salix::SVG::d(intercalate(" ", curve));
+   r+= salix::SVG::x("<lwo/2>"); r+= salix::SVG::y("<lwo/2>");
+   r+=fromCommonFigureAttributesToSalix(f);
+   return r; 
+   }    
        
 default list[value] fromFigureAttributesToSalix(Figure f) {
    list[value] r =[];
@@ -164,7 +178,9 @@ list[value] fromTdModelToProperties(Figure f, Figure g) {
    
 void() innerFig(Figure outer, Figure inner) {
     return (){
-       int lwo = round(outer.lineWidth); int lwi = round(inner.lineWidth);
+       int lwo = round(outer.lineWidth); 
+       if (lwo<0) lwo = 0;
+       int lwi = (ngon():=inner)? round(inner.lineWidth/cos(PI()/inner.n)): inner.Linewidth;
        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
        int widtho = round(outer.width); int heighto = round(outer.height);
        int widthi = round(inner.width); int heighti = round(inner.height);    
@@ -265,7 +281,7 @@ default Figure pullDim(Figure f) {
        if (f.width<0) f.width = f.size[0];
        if (f.height<0) f.height = f.size[1];
        }  
-     if (shapes::Figure::circle():=f && f.width<0 && f.height<0 && f.r>=0) {
+     if ((shapes::Figure::circle():=f || shapes::Figure::ngon():=f) && f.width<0 && f.height<0 && f.r>=0) {
             f.width = 2 * round(f.r); f.height = 2 * round(f.r);
         }
      if (shapes::Figure::ellipse():=f) {
@@ -279,8 +295,10 @@ default Figure pullDim(Figure f) {
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
         f.fig = pullDim(f.fig);
         Figure g = f.fig;
-        int lwo = round(f.lineWidth); int lwi = round(g.lineWidth);
-        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
+        int lwo = round(f.lineWidth); 
+        if (lwo<0) lwo = 0; 
+        int lwi = (ngon():=g)? round(g.lineWidth/cos(PI()/g.n)): g.lineWidth;
+        if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = round(f.grow*getGrowFactor(f, g)*g.width) + lwi+round(g.at[0])+lwo;
         if (f.height<0 && g.height>=0) f.height = round(f.grow*getGrowFactor(f, g)*g.height) + lwi+round(g.at[1])+lwo;
         // To Do the case of a circle
@@ -591,12 +609,34 @@ void eval(Figure f:path(list[str] _)) {
                             });
                    }
                    
+ void eval (Figure f:ngon()) {
+                   num shift = 1.0;
+                   num lw = f.lineWidth/cos(PI()/f.n); 
+                   if (lw<0) lw = 0;
+                   salix::SVG::g(salix::SVG::transform(t_.t(lw/2,lw/2)+"scale(<f.r>,<f.r>) "+t_.t(shift, shift)+t_.r(f.angle, 0, 0)),
+                          (){                        
+                            list[str] pth = [p_.M(-1, 0)];
+                            pth += [p_.L(-cos(phi), sin(phi))|num phi<-[2*PI()/f.n, 4*PI()/f.n..2*PI()]];
+                            pth += [p_.Z()];                     
+                             salix::SVG::path(fromFigureAttributesToSalix(f, pth));
+                            });     
+                   }
+                   
+ str shapeName(Figure f) {
+      switch(f) {
+         case circle():  return "circle";
+         case ellipse(): return "ellipse";
+         default: return "rect";
+         }
+      return "rect";
+      }
+                   
  void eval(Figure f:shapes::Figure::graph()) {
-                 // println("graph found");
                   dagre("myGraph", width("<f.width>"), height("<f.height>"), (N n, E e) {
                        for (tuple[str id, Figure fig] d<-f.nodes) {
                            int lw = d.fig.lineWidth>=0?round(d.fig.lineWidth):0;
-                           n(d.id,salix::lib::Dagre::shape("rect"), width("<d.fig.width+lw>"), height("<d.fig.height+lw>"),
+                           n(d.id,salix::lib::Dagre::shape("<shapeName(d.fig)>"), width("<d.fig.width+lw>"), height("<d.fig.height+lw>"),
+                              class("svg"),
                                (){svg(svgSize(d.fig)+[() {eval(d.fig);}]);});
                            }
                        for (Edge edg <- f.edges)

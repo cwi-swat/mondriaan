@@ -641,6 +641,22 @@ var util = require("../util");
 
 module.exports = addHtmlLabel;
 
+function addMondriaanLabel(root, node) {
+	  var label = node.label;
+	  switch(typeof label) {
+	    case "function":
+	      root.insert(label);
+	      fo.style("line-height", "0");
+	      break;
+	    case "object":
+	      // Currently we assume this is a DOM object.
+	      root.insert(function() { return label; });
+	      break;
+	    default: div.html(label);
+	  }
+	  return node;
+	}
+
 function addHtmlLabel(root, node) {
   var fo = root
     .append("foreignObject")
@@ -685,6 +701,11 @@ module.exports = addLabel;
 function addLabel(root, node, location) {
   var label = node.label;
   var labelSvg = root.append("g");
+  
+//  if (node.class=="svg") {
+//	   alert(node.class);
+//	   return addSVGLabel(labelSvg, node);
+//  }
 
   // Allow the label to be a string, a function that returns a DOM element, or
   // a DOM element itself.
@@ -721,12 +742,20 @@ var util = require("../util");
 module.exports = addSVGLabel;
 
 function addSVGLabel(root, node) {
+	var label = node.label;
+	if (typeof(label)=="function") {
+		      root.insert(label);
+		      util.applyStyle(root, node.labelStyle);
+		      alert(node.width);
+		      root
+		      .attr("width", node.width)
+		      .attr("height", node.height)
+		      ;
+		      return root;
+		  }
   var domNode = root;
-
   domNode.node().appendChild(node.label);
-
   util.applyStyle(domNode, node.labelStyle);
-
   return domNode;
 }
 
@@ -5630,7 +5659,7 @@ module.exports = '1.0.5';
   }
 
   /**
-   * Used by `_.sortBy` to compare transformed elements of a collection and stable
+   * Used by `_.sortBy` to compare transformed ents of a collection and stable
    * sort them in ascending order.
    *
    * @private
@@ -5781,7 +5810,7 @@ module.exports = '1.0.5';
   }
 
   /**
-   * Replaces all `placeholder` elements in `array` with an internal placeholder
+   * Replaces all `placeholder` ents in `array` with an internal placeholder
    * and returns an array of their indexes.
    *
    * @private
@@ -6063,7 +6092,7 @@ module.exports = '1.0.5';
      * `deburr`, `endsWith`, `escape`, `escapeRegExp`, `every`, `find`, `findIndex`,
      * `findKey`, `findLast`, `findLastIndex`, `findLastKey`, `findWhere`, `first`,
      * `floor`, `get`, `gt`, `gte`, `has`, `identity`, `includes`, `indexOf`,
-     * `inRange`, `isArguments`, `isArray`, `isBoolean`, `isDate`, `isElement`,
+     * `inRange`, `isArguments`, `isArray`, `isBoolean`, `isDate`, `isent`,
      * `isEmpty`, `isEqual`, `isError`, `isFinite` `isFunction`, `isMatch`,
      * `isNative`, `isNaN`, `isNull`, `isNumber`, `isObject`, `isPlainObject`,
      * `isRegExp`, `isString`, `isUndefined`, `isTypedArray`, `join`, `kebabCase`,
@@ -6536,7 +6565,7 @@ module.exports = '1.0.5';
      * @private
      * @param {Array} array The array to iterate over.
      * @param {Function} predicate The function invoked per iteration.
-     * @returns {boolean} Returns `true` if all elements pass the predicate check,
+     * @returns {boolean} Returns `true` if all ents pass the predicate check,
      *  else `false`.
      */
     function arrayEvery(array, predicate) {
@@ -6625,7 +6654,7 @@ module.exports = '1.0.5';
     }
 
     /**
-     * Appends the elements of `values` to `array`.
+     * Appends the ents of `values` to `array`.
      *
      * @private
      * @param {Array} array The array to modify.
@@ -6651,7 +6680,7 @@ module.exports = '1.0.5';
      * @param {Array} array The array to iterate over.
      * @param {Function} iteratee The function invoked per iteration.
      * @param {*} [accumulator] The initial value.
-     * @param {boolean} [initFromArray] Specify using the first element of `array`
+     * @param {boolean} [initFromArray] Specify using the first ent of `array`
      *  as the initial value.
      * @returns {*} Returns the accumulated value.
      */
@@ -6676,7 +6705,7 @@ module.exports = '1.0.5';
      * @param {Array} array The array to iterate over.
      * @param {Function} iteratee The function invoked per iteration.
      * @param {*} [accumulator] The initial value.
-     * @param {boolean} [initFromArray] Specify using the last element of `array`
+     * @param {boolean} [initFromArray] Specify using the last ent of `array`
      *  as the initial value.
      * @returns {*} Returns the accumulated value.
      */
