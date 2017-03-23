@@ -560,16 +560,17 @@ function intersectPolygon(node, polyPoints, point) {
 
   var intersections = [];
 
-  var minX = Number.POSITIVE_INFINITY,
-      minY = Number.POSITIVE_INFINITY;
-  polyPoints.forEach(function(entry) {
-    minX = Math.min(minX, entry.x);
-    minY = Math.min(minY, entry.y);
-  });
-
-  var left = x1 - node.width / 2 - minX;
-  var top =  y1 - node.height / 2 - minY;
-
+//  var minX = Number.POSITIVE_INFINITY,
+//      minY = Number.POSITIVE_INFINITY;
+//  polyPoints.forEach(function(entry) {
+//    minX = Math.min(minX, entry.x);
+//    minY = Math.min(minY, entry.y);
+//  });
+//  console.log("minX:"+minX+" minY:"+minY);
+  minX = 0;
+  minY= 0;
+  var left = x1 - node.width / 2 - minX-0;
+  var top =  y1 - node.height / 2 - minY+((parseInt(node.n)==6)?0:0);
   for (var i = 0; i < polyPoints.length; i++) {
     var p1 = polyPoints[i];
     var p2 = polyPoints[i < polyPoints.length - 1 ? i + 1 : 0];
@@ -1140,17 +1141,20 @@ function circle(parent, bbox, node) {
 // the function to calculate the diamond shape from:
 // http://mathforum.org/kb/message.jspa?messageID=3750236
 function diamond(parent, bbox, node) {
-  var w = (bbox.width * Math.SQRT2) / 2,
-      h = (bbox.height * Math.SQRT2) / 2,
-      points = [
-        { x:  0, y: -h },
-        { x: -w, y:  0 },
-        { x:  0, y:  h },
-        { x:  w, y:  0 }
-      ],
-      shapeSvg = parent.insert("polygon", ":first-child")
-        .attr("points", points.map(function(p) { return p.x + "," + p.y; }).join(" "));
-
+  // alert(JSON.stringify(node));
+  var n = parseInt(node.n);
+  var phi = Math.PI*2/n;
+  var r = bbox.width / 2;
+  var points = [];
+  for (var i=Math.PI;i<3*Math.PI;i+=phi) {
+	 points.push({x:(r*Math.cos(i)+r), y:(r*Math.sin(i)+r)});   
+     }    
+    var  shapeSvg = parent
+//    parent.insert("circle", ":first-child")
+//    .attr("x", -r)
+//      .attr("y", -r)
+//     .attr("r", r)
+//     ;      
   node.intersect = function(p) {
     return intersectPolygon(node, points, p);
   };

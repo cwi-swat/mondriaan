@@ -40,8 +40,18 @@ Model init() = startModel;
 
 Figure nGon(Model m) {
        return circle(lineColor="red", lineWidth=4, fig=
-            ngon(n=3, r=50, angle=0, lineColor="black", lineWidth=6));
+            ngon(n=6,   grow=1.0, angle=PI(), lineColor="black", lineWidth=8
+            ,fig=ngon(n=6, r=40, angle=PI(), lineColor="green", lineWidth=8)));
        }
+       
+//Figure nGon(Model m) {
+//       return ellipse(lineColor="red", grow=sqrt(2), lineWidth=4,  fig=
+//             hcat(borderWidth=2,   hgap=0, borderStyle="groove"
+//               , figs=[circle(n=3, r=80,  angle=PI(), lineColor="black", lineWidth=6
+//                           ,fig=ngon(n=3, r=40, angle=PI(), lineColor="green", lineWidth=8))
+//                      ,htmlText( "\<ol\>\<li\>aap\<li\>noot\</ol\>", size=<100, 100>, lineWidth=1, lineColor="black")]
+//             ));
+//       }
 
 
 Figure testFigure(Model m) {

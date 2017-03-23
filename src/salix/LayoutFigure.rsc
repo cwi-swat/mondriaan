@@ -112,6 +112,8 @@ default list[value] fromFigureAttributesToSalix(Figure f) {
    if (lwo<0) lwo = 0;
    if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>");
+   if (f.rounded[0]>0) r+= salix::SVG::rx("<f.rounded[0]>"); 
+   if (f.rounded[1]>0) r+= salix::SVG::ry("<f.rounded[1]>");     
    r+= salix::SVG::x("<lwo/2>"); r+= salix::SVG::y("<lwo/2>");
    r+=fromCommonFigureAttributesToSalix(f);
    return r;
@@ -178,9 +180,9 @@ list[value] fromTdModelToProperties(Figure f, Figure g) {
    
 void() innerFig(Figure outer, Figure inner) {
     return (){
-       int lwo = round(outer.lineWidth); 
+       int lwo = (ngon():=outer)? round(outer.lineWidth/cos(PI()/outer.n)): outer.lineWidth;
        if (lwo<0) lwo = 0;
-       int lwi = (ngon():=inner)? round(inner.lineWidth/cos(PI()/inner.n)): inner.Linewidth;
+       int lwi = (ngon():=inner)? round(inner.lineWidth/cos(PI()/inner.n)): inner.lineWidth;
        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
        int widtho = round(outer.width); int heighto = round(outer.height);
        int widthi = round(inner.width); int heighti = round(inner.height);    
@@ -235,7 +237,8 @@ num getGrowFactor(Figure f, Figure g) {
     return 1;
     }
     
-bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f;
+bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f 
+       || shapes::Figure::ngon():=f;
 
 Figure pullDim(atXY(num x, num y, Figure g)) {
       g.at = <x, y>;
@@ -269,8 +272,8 @@ Figure pullDim(Figure f:overlay()) {
        }  
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
-    int maxWidth = round(max([h.width+h.at[0]+(h.lineWidth<0?0:h.lineWidth)/*+10*/|h<-f.figs]));
-    int maxHeight = round(max([h.height+h.at[1]+(h.lineWidth<0?0:h.lineWidth)/*+10*/|h<-f.figs]));
+    int maxWidth = round(max([h.width+h.at[0]+(h.lineWidth<0?0:h.lineWidth)|h<-f.figs]));
+    int maxHeight = round(max([h.height+h.at[1]+(h.lineWidth<0?0:h.lineWidth)|h<-f.figs]));
     if (f.width<0) f.width = maxWidth;
     if (f.height<0) f.height = maxHeight;
     return f;
@@ -281,6 +284,8 @@ default Figure pullDim(Figure f) {
        if (f.width<0) f.width = f.size[0];
        if (f.height<0) f.height = f.size[1];
        }  
+     if (f.lineWidth<0)
+         f.lineWidth = f.borderWidth;
      if ((shapes::Figure::circle():=f || shapes::Figure::ngon():=f) && f.width<0 && f.height<0 && f.r>=0) {
             f.width = 2 * round(f.r); f.height = 2 * round(f.r);
         }
@@ -295,9 +300,9 @@ default Figure pullDim(Figure f) {
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
         f.fig = pullDim(f.fig);
         Figure g = f.fig;
-        int lwo = round(f.lineWidth); 
+        int lwo = round((ngon():=f)? f.lineWidth/cos(PI()/f.n): f.lineWidth);
         if (lwo<0) lwo = 0; 
-        int lwi = (ngon():=g)? round(g.lineWidth/cos(PI()/g.n)): g.lineWidth;
+        int lwi = round((ngon():=g)? g.lineWidth/cos(PI()/g.n): g.lineWidth);
         if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = round(f.grow*getGrowFactor(f, g)*g.width) + lwi+round(g.at[0])+lwo;
         if (f.height<0 && g.height>=0) f.height = round(f.grow*getGrowFactor(f, g)*g.height) + lwi+round(g.at[1])+lwo;
@@ -442,7 +447,7 @@ default Figure pullDim(Figure f) {
       return f;
       }
      
- Figure pushDim(Figure f) {
+ default Figure pushDim(Figure f) {
      if (f.size != <0, 0>) {
        if (f.width<0) f.width = f.size[0];
        if (f.height<0) f.height = f.size[1];
@@ -613,18 +618,21 @@ void eval(Figure f:path(list[str] _)) {
                    num shift = 1.0;
                    num lw = f.lineWidth/cos(PI()/f.n); 
                    if (lw<0) lw = 0;
+                   if (f.r<0) f.r = f.width/2;
                    salix::SVG::g(salix::SVG::transform(t_.t(lw/2,lw/2)+"scale(<f.r>,<f.r>) "+t_.t(shift, shift)+t_.r(f.angle, 0, 0)),
                           (){                        
                             list[str] pth = [p_.M(-1, 0)];
                             pth += [p_.L(-cos(phi), sin(phi))|num phi<-[2*PI()/f.n, 4*PI()/f.n..2*PI()]];
                             pth += [p_.Z()];                     
                              salix::SVG::path(fromFigureAttributesToSalix(f, pth));
-                            });     
+                            }); 
+                   if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();    
                    }
                    
  str shapeName(Figure f) {
       switch(f) {
          case circle():  return "circle";
+         case ngon():  return "diamond";
          case ellipse(): return "ellipse";
          default: return "rect";
          }
@@ -637,11 +645,23 @@ void eval(Figure f:path(list[str] _)) {
                            int lw = d.fig.lineWidth>=0?round(d.fig.lineWidth):0;
                            n(d.id,salix::lib::Dagre::shape("<shapeName(d.fig)>"), width("<d.fig.width+lw>"), height("<d.fig.height+lw>"),
                               class("svg"),
+                              ngon():=d.fig?nCorner(d.fig.n):0,
                                (){svg(svgSize(d.fig)+[() {eval(d.fig);}]);});
                            }
                        for (Edge edg <- f.edges)
-                           if (edge(str from, str to):=edg) 
-                           e(from, to, lineInterpolate("linear"));
+                           if (edge(str from, str to):=edg) {
+                               list[value] r =[lineInterpolate(edg.lineInterpolate)];
+                               list [tuple[str, str]] styl = [<"fill","none">];  
+                               if (!isEmpty(edg.label)) r += edgeLabel(edg.label); 
+                               if (!isEmpty(edg.labelStyle)) r += labelStyle(edg.labelStyle); 
+                               if (!isEmpty(edg.arrowheadStyle)) r += arrowhead(edg.arrowheadStyle);
+                               if (!isEmpty(edg.lineColor)) styl += <"stroke", edg.lineColor>;
+                               if (edg.lineWidth>=0) styl += <"stroke-width", "<edg.lineWidth>">;
+                               if (!isEmpty(styl)) r+=style(styl);
+                               if (edg.labelOffset>=0) r += labelOffset(edg.labelOffset);
+                               if (!isEmpty(edg.labelPos)) r += labelPos(edg.labelPos);
+                               e(from, to, r);
+                           }
                         });
                   }
 

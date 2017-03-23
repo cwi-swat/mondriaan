@@ -140,7 +140,7 @@ function registerDagre(salix) {
 		}
 		   
 		_svg.salix_native = {patch: patch};
-		svg.attr("viewBox","0 0 "+g.graph().width+" "+g.graph().height);
+		svg.attr("viewBox","0 0 "+(g.graph().width+100)+" "+g.graph().height);
 		return _svg;
 	}
 	
