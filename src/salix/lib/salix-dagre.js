@@ -56,7 +56,7 @@ function registerDagre(salix) {
 		
 		var _svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 		_svg.id = id;
-		attach(_svg);
+	     attach(_svg);
 		
 		// attrs are interpreted on the svg dom
 		for (var k in attrs) {
@@ -64,10 +64,8 @@ function registerDagre(salix) {
 				_svg.setAttribute(k, attrs[k]);
 			}
 		}
-		
-		var svg = d3.select('#' + id),
+		var svg = d3.select(_svg),
 	    	svgGroup = svg.append('g');
-		
 		var render = new dagreD3.render();
 		render(svgGroup, g);
 		function patch(edits, attach) {
@@ -138,7 +136,6 @@ function registerDagre(salix) {
 			
 			
 		}
-		   
 		_svg.salix_native = {patch: patch};
 		svg.attr("viewBox","0 0 "+(g.graph().width+100)+" "+g.graph().height);
 		return _svg;

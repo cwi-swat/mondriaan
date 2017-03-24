@@ -592,9 +592,9 @@ void eval(Figure f:path(list[str] _)) {
                    int startCode =  getFingerprintNode(f.startMarker);
                    int midCode =  getFingerprintNode(f.midMarker);
                    int endCode =  getFingerprintNode(f.endMarker);
-                   if (emptyFigure()!:=f.startMarker) r += <f.startMarker,startCode>0?"startMarker<startCode>":"startMarkerX<startCode>">;
-                   if (emptyFigure()!:=f.midMarker)   r += <f.midMarker, midCode>0?"midMarker<midCode>":"midMarkerX<midCode>">;
-                   if (emptyFigure()!:=f.endMarker)   r += <f.endMarker, endCode>0?"endMarker<endCode>":"endMarkerX<endCode>">;
+                   if (emptyFigure()!:=f.startMarker) r += <f.startMarker,startCode>0?"startMarker<startCode>":"startMarkerX<(-startCode)>">;
+                   if (emptyFigure()!:=f.midMarker)   r += <f.midMarker, midCode>0?"midMarker<midCode>":"midMarkerX<(-midCode)>">;
+                   if (emptyFigure()!:=f.endMarker)   r += <f.endMarker, endCode>0?"endMarker<endCode>":"endMarkerX<(-endCode)>">;
                    // println("fingerPrint: <getFingerprintNode(f.midMarker)>");
                    if (!isEmpty(r))
                             salix::SVG::defs(() {
@@ -640,7 +640,9 @@ void eval(Figure f:path(list[str] _)) {
       }
                    
  void eval(Figure f:shapes::Figure::graph()) {
-                  dagre("myGraph", width("<f.width>"), height("<f.height>"), (N n, E e) {
+                  int graphCode =  getFingerprintNode(f);
+                  str graphId = ((graphCode>0)?"graph<graphCode>":"graphX<(-graphCode)>");
+                  dagre(graphId, width("<f.width>"), height("<f.height>"), (N n, E e) {
                        for (tuple[str id, Figure fig] d<-f.nodes) {
                            int lw = d.fig.lineWidth>=0?round(d.fig.lineWidth):0;
                            n(d.id,salix::lib::Dagre::shape("<shapeName(d.fig)>"), width("<d.fig.width+lw>"), height("<d.fig.height+lw>"),

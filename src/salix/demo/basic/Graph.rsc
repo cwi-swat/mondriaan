@@ -7,49 +7,8 @@ import salix::App;
 import salix::LayoutFigure;
 import salix::lib::Dagre;
 import salix::SVG;
-
-public Figure fsm(){
-	Figure b(str label) =  box( lineColor="black", lineWidth=2, size=<120, 30>,
-	fig=htmlText(label, fontWeight="bold"), fillColor="whitesmoke", rounded=<5,5>, padding=<0,6, 0, 6>, tooltip = label
-	                                          ,id = newName()
-	                                          );	                                          
-    list[tuple[str, Figure]] states = [ 	
-                <"CLOSED", 		ngon(n=4, r = 50, lineColor="black",lineWidth=1, fig=htmlText("CLOSED", fontWeight="bold"), fillColor="#f77", rounded=<5,5>, padding=<0, 5,0, 5>, tooltip = "CLOSED")>, 
-    			<"LISTEN", 		b("LISTEN")>,
-    			<"SYN RCVD", 	b("SYN RCVD")>,
-				<"SYN SENT", 	b("SYN SENT")>,
-                <"ESTAB",	 	box(size=<100, 30>, lineColor="black",fig=htmlText("ESTAB",fontWeight="bold"), fillColor="#7f7", rounded=<5,5>, padding=<0, 5,0, 5>, tooltip = "ESTAB")>,
-                <"FINWAIT-1", 	b("FINWAIT-1")>,
-                <"CLOSE WAIT", 	box(size=<130, 30>, lineColor="black",fig=htmlText("CLOSE WAIT",fontWeight="bold"), fillColor="antiquewhite", lineDashing=[1,1,1,1],  rounded=<5,5>, padding=<0, 5,0, 5>, tooltip = "CLOSE_WAIT"
-                )>,
-                <"FINWAIT-2", 	b("FINWAIT-2")>,    
-                <"CLOSING", b("CLOSING")>,
-                <"LAST-ACK", b("LAST-ACK")>,
-                <"TIME WAIT", b("TIME WAIT")>
-                ];
- 	
-    list[Edge] edges = [	edge("CLOSED", 		"LISTEN",  	 label="open", labelStyle="font-weight:bold;fill:blue"), 
-    			edge("LISTEN",		"SYN RCVD",  label="rcv SYN", labelStyle="font-style:italic"),
-    			edge("LISTEN",		"SYN SENT",  label="send", labelPos="r", labelStyle="font-style:italic", lineColor="red"),
-    			edge("LISTEN",		"CLOSED",    label="close", labelStyle="font-style:italic"),
-    			edge("SYN RCVD", 	"FINWAIT-1", label="close", labelStyle="font-style:italic"),
-    			edge("SYN RCVD", 	"ESTAB",     label="rcv ACK of SYN", labelStyle="font-style:italic"),
-    			edge("SYN SENT",   	"SYN RCVD",  label="rcv SYN", labelStyle="font-style:italic"),
-   				edge("SYN SENT",   	"ESTAB",     label="rcv SYN, ACK", labelStyle="font-style:italic"),
-    			edge("SYN SENT",   	"CLOSED",    label="close", labelStyle="font-style:italic"),
-    			edge("ESTAB", 		"FINWAIT-1", label="close", labelStyle="font-style:italic"),
-    			edge("ESTAB", 		"CLOSE WAIT",label= "rcv FIN", labelStyle="font-style:italic"),
-    			edge("FINWAIT-1",  	"FINWAIT-2",  label="rcv ACK of FIN", labelStyle="font-style:italic"),
-    			edge("FINWAIT-1",  	"CLOSING",    label="rcv FIN", labelStyle="font-style:italic"),
-    			edge("CLOSE WAIT", 	"LAST-ACK",  label="close", labelStyle="font-style:italic"),
-    			edge("FINWAIT-2",  	"TIME WAIT",  label="rcv FIN", labelStyle="font-style:italic"),
-    			edge("CLOSING",    	"TIME WAIT",  label="rcv ACK of FIN", labelStyle="font-style:italic"),
-    			edge("LAST-ACK",   	"CLOSED",     label="rcv ACK of FIN", lineColor="green", labelStyle="font-style:italic"),
-    			edge("TIME WAIT",  	"CLOSED",     label="timeout=2MSL", labelStyle="font-style:italic")
-  			];
-  	return graph(nodes=states, edges=edges);
-}
-
+import salix::Slider;
+import IO;
 
 alias Model = tuple[num x, num y];
 
@@ -68,62 +27,34 @@ data Msg
 
 Model init() = startModel;
 
-
-//Figure testFigure(Model m) {
-//
-/*     }
-Usage:
-dagre("myGraph", (N n, E e) {
-   n("a", () {
-     button(onClick(clicked()), "Hello");
-   });
-   
-   n("b", ...)
-   
-   e("a", "b");
-   e("b", "c");
-});
-*/
-
-Figure tab() = grid(height=60, figArray=[[box(fillColor="beige", width=30), box(fillColor="antiqueWhite", size=<40, 30>,
-                     fig=htmlText("aap"))]
-                , [box(fillColor="navy"), box(fillColor="gold")]
-                , [box(fillColor="whitesmoke"), box(fillColor="lightgrey")]
-                ]);
-      
- Figure crc(str color) = shapes::Figure::ellipse(rx=30, ry=20, fillColor=color);
+Figure crc(str color) = shapes::Figure::ellipse(rx=30, ry=20, fillColor=color);
  
- Figure bx(str color) = box(fillColor=color, size=<60, 60>);
+Figure bx1(str color) = box(fillColor=color, size=<30, 30>);
+
+Figure bx0(str color) {
+        tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr(1);
+        // print(g.edges);
+        return box(fillColor=color, size=<260, 260>
+           , fig=
+               shapes::Figure::graph(nodes=g.nodes, edges = g.edges)
+              // shapes::Figure::circle(r=20, fillColor="red")
+        );
+        }
  
- tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] gr() {
-      return <[<"a", crc("magenta")>, <"b", crc("yellow")>, <"c", bx("navy")>], 
-                [edge("a", "b"), edge("b","c"), edge("a","c")]>;
+tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] gr(int i) {
+      return <[<"a<i>", crc("magenta")>, <"b<i>", crc("yellow")>, <"c<i>", i==0?
+        bx0("antiquewhite"):bx1("antiquewhite")>], 
+                [edge("a<i>", "b<i>"), edge("b<i>","c<i>"), edge("c<i>","a<i>")]>;
       } 
                 
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        // fig(testFigure(m), width = 600, height = 700);
-        //dagre("myGraph", (N n, E e) {
-        //     n("a",salix::lib::Dagre::shape("rect"), "aap");
-        //     n("b",shape("rect"), 
-        //                (){svg(width("30px"), height("30px"), () {salix::SVG::circle(salix::SVG::fill("red"), salix::SVG::r("10px"));});}
-        //            );
-        //     e("a", "b", lineInterpolate("linear"));
-        //     });
-        
-        //list[tuple[str, Figure]] nodes = [
-        //    <"a"
-        //         // , box(size=<30, 30>, fillColor="red", lineWidth=4, lineColor="black")
-        //          , tab()
-        //          >
-        //   ,<"b", shapes::Figure::circle(r=35, lineWidth= 2, fillColor="blue", lineColor="black")>
-        //   ];
-        // list[Edge] edges = [edge("a", "b")];
-         tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr();
-        // fig(shapes::Figure::graph(nodes=g.nodes, edges = g.edges, width=200, height=200), width = 800, height = 800);
-        fig(box(size=<600, 900>, lineWidth=1, lineColor="black", fig=fsm()));
-         });  
+         tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr(0);
+     fig(shapes::Figure::graph(nodes=g.nodes, edges = g.edges, width=800, height=800));
+       
+ 
+      });
     }
     
 //---------------------------------------------------------------------------------------------------------------------------------------------------------

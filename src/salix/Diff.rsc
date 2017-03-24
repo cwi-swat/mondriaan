@@ -45,6 +45,7 @@ Patch diff(Node old, Node new, int idx) {
   if (old is native, new is native) {
     // todo: extra data 
     edits = diffMap(old.props, new.props, setProp, removeProp)
+      + diffMap(old.attrs, new.attrs, setAttr, removeAttr)  // Bert
       + diffMap(old.events, new.events, setEvent, removeEvent)
       + diffMap(old.extra, new.extra, setExtra, removeExtra);
     return patch(idx, edits = edits);  
