@@ -73,8 +73,7 @@ Model init() = startModel;
 
 void myView(Model m) {
     div(() {
-        h2("Figure using SVG");
-         tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr();      
+        h2("Figure using SVG");  
         fig(box(size=<m.width, m.height>, lineWidth=1, lineColor="black", fig=fsm(m)));
         slider([[
                   [<resizeX, 0, "width:", 0, 1600, 200, m.width> ]
@@ -82,3 +81,15 @@ void myView(Model m) {
                  ]]);   
          });  
     }
+    
+App[Model] testApp() {
+   return app(init, myView, update, 
+    |http://localhost:9103|, |project://mondriaan/src|);
+   }
+    
+public App[Model] c = testApp();
+
+public void main() {
+     c.stop();
+     c.serve();
+     }

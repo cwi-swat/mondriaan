@@ -33,11 +33,22 @@ value hAlign(Alignment align) {
        return "";   
        }
        
+ int getLineWidth(Figure f) {
+      if (f.borderWidth<0) {
+           return f.lineWidth>=0?round(f.lineWidth):0;
+           }
+      else {
+          return f.borderWidth; 
+          }
+      }
+       
  list[value] fromCommonFigureAttributesToSalix(Figure f) {  
    list[value] r =[];    
    if (!isEmpty(f.fillColor)) r+= salix::SVG::fill(f.fillColor);
    if (!isEmpty(f.lineColor)) r+= salix::SVG::stroke(f.lineColor);
    if (f.lineWidth>=0) r+= salix::SVG::strokeWidth("<f.lineWidth>");
+   if (f.lineOpacity>=0) r+= salix::SVG::strokeOpacity("<f.lineOpacity>");
+   if (f.fillOpacity>=0) r+= salix::SVG::fillOpacity("<f.fillOpacity>");
    if (!isEmpty(f.visibility)) r+= salix::SVG::visibility(f.visibility);
    if (Event q:= f.event)  if (onclick(Msg msg):=q) r+=salix::SVG::onClick(msg);
    return r;
@@ -45,8 +56,7 @@ value hAlign(Alignment align) {
    
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    list[value] r =[];
-   int lwo = round(f.lineWidth); 
-   if (lwo<0) lwo = 0;
+   int lwo = getLineWidth(f);
    if (f.r<0 && f.width>=0 && f.height>=0) f.r = max(f.width, f.height)/2;
         if (f.r>=0) {r+= salix::SVG::r("<f.r>");
                 r+= salix::SVG::cx("<f.at[0]+f.r+lwo/2>");
@@ -58,8 +68,7 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    list[value] r =[];
-   int lwo = round(f.lineWidth); 
-   if (lwo<0) lwo = 0;
+   int lwo = getLineWidth(f);
    if (f.rx<0 && f.width>=0) f.rx = f.width/2;
         if (f.ry<0 && f.height>=0) f.ry = f.height/2;
         if (f.rx>=0) {r+= salix::SVG::rx("<f.rx>");
@@ -75,8 +84,7 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
  list[value] fromFigureAttributesToSalix(f:shapes::Figure::path(list[str] curve),
     list[tuple[Figure, str]] markers) {
    list[value] r =[];
-   int lwo = round(f.lineWidth); 
-   if (lwo<0) lwo = 0;
+   int lwo = getLineWidth(f);
    if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>");
    for (tuple[Figure fig, str lab] m<-markers) {
@@ -108,8 +116,7 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ngon(),
        
 default list[value] fromFigureAttributesToSalix(Figure f) {
    list[value] r =[];
-   int lwo = round(f.lineWidth); 
-   if (lwo<0) lwo = 0;
+   int lwo = getLineWidth(f);
    if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>");
    if (f.rounded[0]>0) r+= salix::SVG::rx("<f.rounded[0]>"); 
@@ -121,8 +128,7 @@ default list[value] fromFigureAttributesToSalix(Figure f) {
    
 list[value] svgSize(Figure f) {
    list[value] r =[];
-   int lw = round(f.lineWidth); 
-   if (lw<0) lw = 0;
+   int lw = getLineWidth(f);
    if (f.width>=0) r+= salix::SVG::width("<f.width+f.at[0]+lw>"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height+f.at[1]+lw>");
    return r;
@@ -156,7 +162,7 @@ list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
 list[value] fromTableModelToProperties(Figure f) {
     list[value] r =[];
     list[tuple[str, str]] styles=[];     
-        styles += <"border-spacing", "<f.hgap> <f.vgap>">;
+        styles += <"border-spacing", "<f.hgap>px <f.vgap>px">;
         styles+= <"border-collapse", "separate">;
         //if (f.width>=0) styles+= <"width", "<f.width>">; 
         // if (f.height>=0) styles+= <"height", "<f.height>">;
@@ -167,7 +173,7 @@ list[value] fromTableModelToProperties(Figure f) {
 list[value] fromTdModelToProperties(Figure f, Figure g) {
     list[tuple[str, str]] styles = [<"padding", 
     "<round(g.padding[1])> <round(g.padding[2])> <round(g.padding[3])> <round(g.padding[0])>">];
-    if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>">;
+    if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
     if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
     if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
     list[value] r =[salix::HTML::style(styles)];
@@ -180,9 +186,8 @@ list[value] fromTdModelToProperties(Figure f, Figure g) {
    
 void() innerFig(Figure outer, Figure inner) {
     return (){
-       int lwo = (ngon():=outer)? round(outer.lineWidth/cos(PI()/outer.n)): outer.lineWidth;
-       if (lwo<0) lwo = 0;
-       int lwi = (ngon():=inner)? round(inner.lineWidth/cos(PI()/inner.n)): inner.lineWidth;
+       int lwo = (ngon():=outer)? round(outer.lineWidth/cos(PI()/outer.n)): getLineWidth(outer);
+       int lwi = (ngon():=inner)? round(inner.lineWidth/cos(PI()/inner.n)): getLineWidth(inner);
        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
        int widtho = round(outer.width); int heighto = round(outer.height);
        int widthi = round(inner.width); int heighti = round(inner.height);    
@@ -205,8 +210,7 @@ void() tableCells(Figure f, list[Figure] g) {
        Figure w= h; // Because of bug in rascal?
        list[value] svgArgs = [];
        int width = round(h.width); int height = round(h.height);
-       int lw = round(h.lineWidth);
-       if (lw<0) lw = 0;
+       int lw = getLineWidth(h);
        if (width>=0) svgArgs+= salix::SVG::width("<width+lw+h.at[0]>");
        if (height>=0) svgArgs+= salix::SVG::height("<height+lw+h.at[1]>");
        list[value] tdArgs = fromTdModelToProperties(f, h); 
@@ -240,7 +244,7 @@ num getGrowFactor(Figure f, Figure g) {
 bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f 
        || shapes::Figure::ngon():=f;
 
-Figure pullDim(atXY(num x, num y, Figure g)) {
+Figure pullDim(atXY(int x, int y, Figure g)) {
       g.at = <x, y>;
       return pullDim(g);
       }
@@ -272,8 +276,8 @@ Figure pullDim(Figure f:overlay()) {
        }  
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
-    int maxWidth = round(max([h.width+h.at[0]+(h.lineWidth<0?0:h.lineWidth)|h<-f.figs]));
-    int maxHeight = round(max([h.height+h.at[1]+(h.lineWidth<0?0:h.lineWidth)|h<-f.figs]));
+    int maxWidth = round(max([h.width+h.at[0]+(getLineWidth(h))|h<-f.figs]));
+    int maxHeight = round(max([h.height+h.at[1]+(getLineWidth(h))|h<-f.figs]));
     if (f.width<0) f.width = maxWidth;
     if (f.height<0) f.height = maxHeight;
     return f;
@@ -284,8 +288,6 @@ default Figure pullDim(Figure f) {
        if (f.width<0) f.width = f.size[0];
        if (f.height<0) f.height = f.size[1];
        }  
-     if (f.lineWidth<0)
-         f.lineWidth = f.borderWidth;
      if ((shapes::Figure::circle():=f || shapes::Figure::ngon():=f) && f.width<0 && f.height<0 && f.r>=0) {
             f.width = 2 * round(f.r); f.height = 2 * round(f.r);
         }
@@ -300,9 +302,9 @@ default Figure pullDim(Figure f) {
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
         f.fig = pullDim(f.fig);
         Figure g = f.fig;
-        int lwo = round((ngon():=f)? f.lineWidth/cos(PI()/f.n): f.lineWidth);
+        int lwo = round((ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f));
         if (lwo<0) lwo = 0; 
-        int lwi = round((ngon():=g)? g.lineWidth/cos(PI()/g.n): g.lineWidth);
+        int lwi = round((ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g));
         if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = round(f.grow*getGrowFactor(f, g)*g.width) + lwi+round(g.at[0])+lwo;
         if (f.height<0 && g.height>=0) f.height = round(f.grow*getGrowFactor(f, g)*g.height) + lwi+round(g.at[1])+lwo;
@@ -311,8 +313,7 @@ default Figure pullDim(Figure f) {
      if (grid():=f || vcat():=f || hcat():=f) {
          list[list[Figure]] z =[];
          int height = 0;
-         int lw = round(f.borderWidth);
-         if (lw<0) lw = 0;
+         int lw = getLineWidth(f);
          int nc  = 0;
          list[list[Figure]] figArray = [];
          if (grid():=f) figArray = f.figArray;
@@ -324,12 +325,11 @@ default Figure pullDim(Figure f) {
             int h1 = 0;
             int i = 0;   
             for (Figure h<-g)  {
-                  int lwi = round(h.lineWidth);
-                  if (lwi<0) lwi = 0;
                   Figure v = pullDim(h);
-                  int colWidth = v.width>=0?(v.width+lwi+h.padding[0]+h.padding[2]+round(h.at[0])):-1;
+                  int lwi = getLineWidth(v);
+                  int colWidth = v.width>=0?(v.width+lwi+v.padding[0]+v.padding[2]+round(v.at[0])):-1;
                   if (maxColWidth[i]<colWidth) maxColWidth[i] = colWidth;
-                  if (h1>=0) if (v.height>=0) h1 = max([h1, v.height+lwi+h.padding[1]+h.padding[3]+round(h.at[1])]);else h1=-1;
+                  if (h1>=0) if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding[1]+v.padding[3]+round(v.at[1])]);else h1=-1;
                   r += [v]; 
                   i += 1;     
                   }
@@ -370,7 +370,7 @@ default Figure pullDim(Figure f) {
          int maxHeight = -1;int maxLw = -1;
          for (Figure h<-g) {
               maxHeight= max(h.height, maxHeight);
-              maxLw = max(h.lineWidth, maxLw);
+              maxLw = max(getLineWidth(h), maxLw);
          }
          if (maxHeight>=0) definedHeight= definedHeight+maxHeight;
          if (maxLw>=0) sumLw+=maxLw;
@@ -399,7 +399,7 @@ default Figure pullDim(Figure f) {
          int maxWidth = -1; int maxLw = -1;
          for (Figure h<-g) {
               maxWidth= max(h.width, maxWidth);
-              maxLw = max(h.lineWidth, maxLw);
+              maxLw = max(getLineWidth(h), maxLw);
          }
          if (maxWidth>=0) definedWidth= definedWidth+maxWidth;
          if (maxLw>=0) sumLw+=maxLw;
@@ -453,16 +453,17 @@ default Figure pullDim(Figure f) {
        if (f.height<0) f.height = f.size[1];
        }
      if (hasFigField(f) && emptyFigure()!:=f.fig) {
-           Figure g = f.fig;  
-           int lwo = round(f.lineWidth); int lwi = round(g.lineWidth);
-           if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
+           Figure g = f.fig; 
+           int lwo = round((ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f));
+           if (lwo<0) lwo = 0; 
+           int lwi = round((ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g));
+           if (lwi<0) lwi = 0;
            if (g.width<0 && f.width>=0) g.width = round(g.shrink*(f.width-lwo)) - lwi -round(g.at[0]);
            if (g.height<0 && f.height>=0) g.height = round(g.shrink*(f.height-lwo)) -lwi - round(g.at[1]);
            f.fig = pushDim(g);
      }
      if (grid():=f || vcat():=f || hcat():=f) {
-         int lw = round(f.borderWidth);
-         if (lw<0) lw = 0;
+         int lw = getLineWidth(f);
          list[list[Figure]] figArray = [];
          if (grid():=f) figArray = f.figArray;
          else if (vcat():=f) figArray= [[h]|h<-f.figs]; 
@@ -535,8 +536,7 @@ void eval(Figure f:shapes::Figure::circle()) {salix::SVG::circle(fromFigureAttri
 void eval(Figure f:shapes::Figure::ellipse()) {salix::SVG::ellipse(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 
 void eval(Figure f:htmlText(value v)) {
-     int lw = round(f.lineWidth); 
-     if (lw<0) lw = 0;
+     int lw = getLineWidth(f);
      int width = f.width; int height = f.height; 
      list[value] foreignObjectArgs = [style(<"line-height", "1.5">)];
      if (width>=0) foreignObjectArgs+= salix::SVG::width("<width-lw>");
@@ -544,7 +544,7 @@ void eval(Figure f:htmlText(value v)) {
      foreignObjectArgs+= salix::SVG::x("<lw>"); foreignObjectArgs+= salix::SVG::y("<lw>");
      list[tuple[str, str]] styles = [<"padding", 
                                       "<round(f.padding[1])> <round(f.padding[2])> <round(f.padding[3])> <round(f.padding[0])>">];
-     if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>">;
+     if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
      if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
      if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
      if (htmlText(_):=f) {

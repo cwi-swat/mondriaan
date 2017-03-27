@@ -36,7 +36,7 @@ Figure bx0(str color) {
         // print(g.edges);
         return box(fillColor=color, size=<260, 260>
            , fig=
-               shapes::Figure::graph(nodes=g.nodes, edges = g.edges)
+               shapes::Figure::graph(nodes=g.nodes, edges = g.edges, width=800, height=800)
               // shapes::Figure::circle(r=20, fillColor="red")
         );
         }
