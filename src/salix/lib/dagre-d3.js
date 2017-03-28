@@ -659,26 +659,23 @@ function addMondriaanLabel(root, node) {
 	}
 
 function addHtmlLabel(root, node) {
-  var fo = root
-    .append("foreignObject")
-      .attr("width", "100000");
-
-  var div = fo
-    .append("xhtml:div");
-  div.attr("xmlns", "http://www.w3.org/1999/xhtml");
+    var fo = root
+          .append("foreignObject")
+          .attr("width", "100000");
+    var div = fo.append("xhtml:div");
+    div.attr("xmlns", "http://www.w3.org/1999/xhtml");
   var label = node.label;
   switch(typeof label) {
     case "function":
-      div.insert(label);
+      root.insert(label);
       fo.style("line-height", "0");
       break;
     case "object":
       // Currently we assume this is a DOM object.
-      div.insert(function() { return label; });
+       div.insert(function() { return label; });
       break;
     default: div.html(label);
   }
-
   util.applyStyle(div, node.labelStyle);
   div.style("display", "inline-block");
   // Fix for firefox
@@ -700,19 +697,20 @@ var addTextLabel = require("./add-text-label"),
 module.exports = addLabel;
 
 function addLabel(root, node, location) {
-  var label = node.label;
-  var labelSvg = root.append("g");
-  
-//  if (node.class=="svg") {
-//	   alert(node.class);
-//	   return addSVGLabel(labelSvg, node);
-//  }
-
+	var label = node.label;
+	var labelSvg = root.append("g");
+   if (node.class=="svg") {
+	   addSVGLabel(labelSvg, node);
+   }
+   else
+   
+   
   // Allow the label to be a string, a function that returns a DOM element, or
   // a DOM element itself.
-  if (node.labelType === "svg") {
-    addSVGLabel(labelSvg, node);
-  } else if (typeof label !== "string" || node.labelType === "html") {
+  //if (node.labelType === "svg") {
+  //  addSVGLabel(labelSvg, node);
+     
+   if (typeof label !== "string" || node.labelType === "html") {
     addHtmlLabel(labelSvg, node);
   } else {
     addTextLabel(labelSvg, node);
@@ -743,21 +741,16 @@ var util = require("../util");
 module.exports = addSVGLabel;
 
 function addSVGLabel(root, node) {
-	var label = node.label;
-	if (typeof(label)=="function") {
-		      root.insert(label);
-		      util.applyStyle(root, node.labelStyle);
-		      alert(node.width);
-		      root
-		      .attr("width", node.width)
-		      .attr("height", node.height)
-		      ;
-		      return root;
-		  }
-  var domNode = root;
-  domNode.node().appendChild(node.label);
-  util.applyStyle(domNode, node.labelStyle);
-  return domNode;
+	  var label = node.label;
+	  switch(typeof label) {
+	    case "function":
+	      root.insert(label);
+	      break;
+	    case "object":
+	      root.insert(function() { return label; });
+	      break;
+	  }
+	 return root;	 
 }
 
 },{"../util":27}],20:[function(require,module,exports){

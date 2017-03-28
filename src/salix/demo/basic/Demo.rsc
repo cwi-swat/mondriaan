@@ -5,21 +5,24 @@ import shapes::Figure;
 import salix::HTML;
 import salix::Core;
 import salix::App;
+import salix::Slider;
 import salix::LayoutFigure;
 
-alias Model = tuple[num x, num y];
+alias Model = list[tuple[num shrink, num grow]];
 
-Model startModel = <0, 0>;
+Model startModel = [<1, 1>, <1, 1>, <1, 1>];
 
 data Msg
-   = moveX(num x)
+   = shrink(int id, num x)
+   | grow(int id, num x)
    ;
    
  Model update(Msg msg, Model m) {
     switch (msg) {
-       case moveX(num x): 
+       case shrink(int id, num v): m[id].shrink = v;
+       case grow(int id, num v): m[id].grow = v;
+       }
      return m;
-     }
 }
 
 Model init() = startModel;
@@ -30,53 +33,57 @@ Model init() = startModel;
 
 
      
-public Figure newBox(str lc, Figure el) {
+public Figure newBox(Model m, str lc, Figure el) {
       return atXY(10, 10, box(align = centerMid, lineColor= lc, 
-             fillColor = "none", fig = el, lineWidth = 8));
+             fillColor = "none", fig = el, lineWidth = 8  
+             , shrink=m[0].shrink, grow=m[0].grow
+             ));
       }
-public Figure boxes() { 
+public Figure boxes(Model m) { 
          list[str] colors = ["green",  "red", "blue", "grey", "magenta", "brown"];
          return hcat(fillColor="none", borderWidth = 0, hgap = 0, figs = [
            (
-           atXY(10, 10, box( // align = centerMid, 
+           atXY(10, 10, box(// grow=m[0].grow, 
              lineColor="grey", fillColor = "yellow", lineOpacity=1.0, size=<30, 40>))
-           |newBox(e, 
+           |newBox(m, e, 
           it)| e<-colors)
           ,
-          box(size=<200, 200>, fig=(atXY(10, 10, box(align = centerMid, lineColor="grey", lineWidth=4, fillColor = "antiquewhite", lineOpacity=1.0))
-          |newBox(e, it)| e<-colors))
+          box(size=<300, 300>, fig=(atXY(10, 10, box(shrink = m[0].shrink, align = centerMid, lineColor="grey", lineWidth=1, fillColor = "antiquewhite", lineOpacity=1.0))
+          |newBox(m, e, it)| e<-colors))
             ])
          ;
           }
 
-public Figure newEllipse(str lc, Figure el) {
-      return atXY(0, 0, ellipse(lineColor= lc, lineWidth = 4, 
-           fillColor = "white", padding=<0,0,0,0>, 
+public Figure newEllipse(Model m, str lc, Figure el) {
+      return atXY(0, 0, ellipse(lineColor= lc, lineWidth = 4 
+           , shrink=m[1].shrink, grow=m[1].grow
+           , fillColor = "white", padding=<0,0,0,0>, 
       fig = el));
       }
-public Figure ellipses() {
+public Figure ellipses(Model m) {
       list[str] colors = ["red","blue" ,"grey","magenta", "brown", "green"];
       return hcat(padding=<0, 0, 0, 0>, fillColor="none",  hgap = 6,  figs = [
-      (idEllipse(17, 12) |newEllipse(e,  it)| e<-colors)
+      (idEllipse(17, 12) |newEllipse(m, e,  it)| e<-colors)
       ,
-      box(size=<150, 100>, fig=(idEllipse(-1, -1) |newEllipse(e, it)| e<-colors))
+      box(size=<150, 100>, fig=(idEllipse(-1, -1) |newEllipse(m, e, it)| e<-colors))
       ]);
       ;
       }
       
-public Figure newNgon(str lc, Figure el) {
-      return atXY(0, 0, ngon(n = 5,  grow=1.0, align = centerMid, lineColor= lc, 
-             lineWidth = 8, fillColor = "white", padding=<0,0,0,0>,
+public Figure newNgon(Model m, str lc, Figure el) {
+      return atXY(0, 0, ngon(n = 5,  grow=1.0, align = centerMid, lineColor= lc 
+          ,shrink=m[2].shrink, grow=m[2].grow
+          ,lineWidth = 8, fillColor = "white", padding=<0,0,0,0>,
       fig = el));
       }
 
-public Figure ngons() {
+public Figure ngons(Model m) {
           list[str] colors = ["antiquewhite", "yellow", "red","blue" ,"grey","magenta"];
            return // pack([
               hcat(hgap=6, lineWidth = 4, figs=[
-             (idNgon(5, 20) |newNgon(e, it)| e<-colors)
+             (idNgon(5, 20) |newNgon(m, e, it)| e<-colors)
              ,
-            box(size=<200, 200>, fig= (idNgon(5, -1) |newNgon(e, it)| e<-colors))
+            box(size=<200, 200>, fig= (idNgon(5, -1) |newNgon(m, e, it)| e<-colors))
            ])
            // ], size=<500, 500>)
            ;}
@@ -94,26 +101,34 @@ public Figure vennDiagram() = overlay(
      );
 
 
-public list[list[Figure]] figures(bool tooltip) = 
+public list[list[Figure]] figures(Model m, bool tooltip) = 
 [
-    [boxes()]
-     , [ellipses()]
-     , [ngons()]
+    [boxes(m)]
+    , [ellipses(m)]
+    , [ngons(m)]
      , [vennDiagram()]
      ]; 
      
       
             
- Figure demoFig() = grid(align = centerMid, borderStyle="groove", vgap=50, figArray=figures(false));   
+ Figure demoFig(Model m) = grid(width=1200, align = centerMid, borderStyle="groove", vgap=50, figArray=figures(m, false));   
      
  Figure testFigure(Model m) {
-     return demoFig();
+     return demoFig(m);
      }
      
  void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m), width = 600, height = 1000);
+        fig(testFigure(m));
+         slider([[
+                  [<shrink, 0, "shrink box:", 0.9, 1, 0.01, 1> ]
+                 ,[<grow, 0, "grow box:", 1, 1.2, 0.01, 1> ]
+                 ,[<shrink, 1, "shrink ellipse:", 0.9, 1, 0.01, 1> ]
+                 ,[<grow, 1, "grow ellipse:", 1, 1.2, 0.01, 1> ]
+                 ,[<shrink, 2, "shrink polygon:", 0.9, 1, 0.01, 1> ]
+                 ,[<grow, 2, "grow polygon:", 1, 1.2, 0.01, 1> ]
+                 ]]);   
         });
     }
      

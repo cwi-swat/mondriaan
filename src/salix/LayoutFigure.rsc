@@ -138,7 +138,7 @@ list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
     list[tuple[str, str]] styles=[]; 
     if (!svg) styles+= <"overflow", f.overflow>; 
     int fontSize = (f.fontSize>=0)?f.fontSize:12;
-    styles+=<"font-size", "<fontSize>">;
+    styles+=<"font-size", "<fontSize>pt">;
     if (!isEmpty(f.fontStyle)) styles+=<"font-style", f.fontStyle>;
     if (!isEmpty(f.fontFamily)) styles+=<"font-family", f.fontFamily>;
     if (!isEmpty(f.fontWeight)) styles+= <"font-weight", f.fontWeight>;
@@ -236,8 +236,10 @@ void() tableRows(Figure f) {
     return () {for (void() z<-r) z();};
     }
     
+bool isGrid(Figure f) = hcat():=f || vcat():= f || grid():=f;
+    
 num getGrowFactor(Figure f, Figure g) {
-    if ((shapes::Figure::circle():=f||shapes::Figure::ellipse():=f)&&box():=g) return sqrt(2);
+    if ((shapes::Figure::circle():=f||shapes::Figure::ellipse():=f || isGrid(f))&&box():=g) return sqrt(2);
     return 1;
     }
     
@@ -458,8 +460,8 @@ default Figure pullDim(Figure f) {
            if (lwo<0) lwo = 0; 
            int lwi = round((ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g));
            if (lwi<0) lwi = 0;
-           if (g.width<0 && f.width>=0) g.width = round(g.shrink*(f.width-lwo)) - lwi -round(g.at[0]);
-           if (g.height<0 && f.height>=0) g.height = round(g.shrink*(f.height-lwo)) -lwi - round(g.at[1]);
+           if (g.width<0 && f.width>=0) g.width = round(g.shrink*(f.width-lwo) - lwi -round(g.at[0]));
+           if (g.height<0 && f.height>=0) g.height = round(g.shrink*(f.height-lwo) -lwi - round(g.at[1]));
            f.fig = pushDim(g);
      }
      if (grid():=f || vcat():=f || hcat():=f) {
@@ -548,16 +550,16 @@ void eval(Figure f:htmlText(value v)) {
      if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
      if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
      if (htmlText(_):=f) {
-          if(f.width>=0)  styles+= <"max-width", "<f.width>">;
-          if(f.height>=0)  styles+= <"max-height", "<f.height>">;
-          if(f.width>=0)  styles+= <"min-width", "<f.width>">;
-          if(f.height>=0)  styles+= <"min-height", "<f.height>">;
+          if(f.width>=0)  styles+= <"max-width", "<f.width>px">;
+          if(f.height>=0)  styles+= <"max-height", "<f.height>px">;
+          if(f.width>=0)  styles+= <"min-width", "<f.width>px">;
+          if(f.height>=0)  styles+= <"min-height", "<f.height>px">;
           }
      list[value] tdArgs =[salix::HTML::style(styles)];
      tdArgs += hAlign(f.align);
      tdArgs += vAlign(f.align); 
      tdArgs+=[salix::HTML::style(styles)];
-     list[value] tableArgs = foreignObjectArgs+fromTextPropertiesToSalix(f, false); 
+     list[value] tableArgs = /*foreignObjectArgs+*/fromTextPropertiesToSalix(f, false); 
      if(str s:=v) foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[s]);});}]);}]);
     }
     

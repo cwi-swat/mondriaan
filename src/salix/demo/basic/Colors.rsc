@@ -57,11 +57,13 @@ void colorSelector(int i, int j, list[str] colors) {
     }
     
  Figure testFigure(Model m) {
-   return grid(figArray=[[
-     box(width=d.width, height = d.height, fillColor= d.fillColor
+   return ellipse(lineWidth=4, lineColor="red", grow=sqrt(2), fig=
+     grid(borderStyle="groove", borderWidth= 4,
+         figArray=[[
+         box(width=d.width, height = d.height, fillColor= d.fillColor
         // ,lineWidth =2, lineColor="coral"
         // , fig = box(fillColor="navy", shrink=0.7,lineColor = "green", lineWidth = 2)
-        )|d<-row]| row<-m]);
+        )|d<-row]| row<-m]));
    }
    
 void tableCell(int row, int j, int low, int high, bool hgh) {

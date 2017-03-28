@@ -50,7 +50,7 @@ tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] gr(int i) {
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-         tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr(0);
+         tuple[list[tuple[str, Figure]] nodes , list[Edge] edges] g = gr(1);
      fig(shapes::Figure::graph(nodes=g.nodes, edges = g.edges, width=800, height=800));
        
  
