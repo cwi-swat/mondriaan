@@ -34,12 +34,16 @@ value hAlign(Alignment align) {
        }
        
  int getLineWidth(Figure f) {
+      int lw = round(isGrid(f)?f.borderWidth:f.lineWidth);
+      return (lw>=0?lw:0);
+      /*
       if (f.borderWidth<0) {
            return f.lineWidth>=0?round(f.lineWidth):0;
            }
       else {
           return f.borderWidth; 
           }
+      */
       }
        
  list[value] fromCommonFigureAttributesToSalix(Figure f) {  
@@ -57,7 +61,7 @@ value hAlign(Alignment align) {
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    list[value] r =[];
    int lwo = getLineWidth(f);
-   if (f.r<0 && f.width>=0 && f.height>=0) f.r = max(f.width, f.height)/2;
+   if (f.r<0 && f.width>=0 && f.height>=0) f.r = min(f.width, f.height)/2;
         if (f.r>=0) {r+= salix::SVG::r("<f.r>");
                 r+= salix::SVG::cx("<f.at[0]+f.r+lwo/2>");
                 r+= salix::SVG::cy("<f.at[1]+f.r+lwo/2>");
@@ -149,8 +153,8 @@ list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
         if (f.fontLineWidth>=0) styles+=<"stroke-width", "<f.fontLineWidth>">;
         styles+=<"text-anchor", "middle">;
         }
-    if (f.width>=0) styles+= <"width", "<f.width>">; 
-    if (f.height>=0) styles+= <"height", "<f.height>">;
+    if (f.width>=0) styles+= <"width", "<f.width>px">; 
+    if (f.height>=0) styles+= <"height", "<f.height>px">;
     list[value] r =[salix::HTML::style(styles)];
     if (svg) {
         if (f.width>=0) r+=salix::SVG::x("<f.width/2>");
@@ -172,7 +176,7 @@ list[value] fromTableModelToProperties(Figure f) {
    
 list[value] fromTdModelToProperties(Figure f, Figure g) {
     list[tuple[str, str]] styles = [<"padding", 
-    "<round(g.padding[1])> <round(g.padding[2])> <round(g.padding[3])> <round(g.padding[0])>">];
+    "<round(g.padding[1])>px <round(g.padding[2])>px <round(g.padding[3])>px <round(g.padding[0])>px">];
     if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
     if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
     if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
@@ -345,8 +349,8 @@ default Figure pullDim(Figure f) {
           if (vcat():=f) f.figs = [head(h)|list[Figure] h<-z];
           else
           if (hcat():=f) f.figs = head(z);
-          if (f.width<0) f.width = width+nc*(f.hgap+2*lw)+f.hgap; 
-          if (f.height<0) f.height = height+size(z)*(f.vgap+2*lw)+f.vgap;
+          if (f.width<0 && width>-0) f.width = width+nc*(f.hgap+2*lw)+f.hgap; 
+          if (f.height<0 && height>=0) f.height = height+size(z)*(f.vgap+2*lw)+f.vgap;
           }
      return f;
      }
@@ -477,8 +481,8 @@ default Figure pullDim(Figure f) {
               list[Figure] r = [];
               for (Figure h<-g) {  
                   Figure q = h;
-                  if (cellsW.width>=0 && q.width<0) q.width =   round(cellsW.width*q.shrink-q.at[0]-lw); 
-                  if (cellsH.height>=0 && q.height<0) q.height =   round(cellsH.height*q.shrink-q.at[1]-lw); 
+                  if (cellsW.width>=0 && q.width<0) q.width =   round(cellsW.width*q.shrink-q.at[0]-lw-q.padding[0]-q.padding[2]); 
+                  if (cellsH.height>=0 && q.height<0) q.height =   round(cellsH.height*q.shrink-q.at[1]-lw)-q.padding[1]-q.padding[3]; 
                   r += pushDim(q);  
                   }
               z+=[r];

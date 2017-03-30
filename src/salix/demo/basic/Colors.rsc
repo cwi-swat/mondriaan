@@ -57,7 +57,8 @@ void colorSelector(int i, int j, list[str] colors) {
     }
     
  Figure testFigure(Model m) {
-   return ellipse(lineWidth=4, lineColor="red", grow=sqrt(2), fig=
+   return ellipse(lineWidth=4, lineColor="red"// , grow=sqrt(2)
+      , fig=
      grid(borderStyle="groove", borderWidth= 4,
          figArray=[[
          box(width=d.width, height = d.height, fillColor= d.fillColor

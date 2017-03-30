@@ -69,11 +69,7 @@ Figure testFigure(Model m) {
            ;
     } 
     
- Figure testVcat(Model m) = vcat(figs=[
-                                      box(lineWidth=4, width=100, height = 100, fillColor="yellow", lineColor="brown")
-                                      ,box(lineWidth=4, width=100, height = 50, fillColor="yellow", lineColor="red")
-                                      ]);   
-
+ 
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");

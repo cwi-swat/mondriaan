@@ -111,7 +111,7 @@ public list[list[Figure]] figures(Model m, bool tooltip) =
      
       
             
- Figure demoFig(Model m) = grid(width=1200, align = centerMid, borderStyle="groove", vgap=50, figArray=figures(m, false));   
+ Figure demoFig(Model m) = grid(align = centerMid, borderStyle="groove", borderWidth=2, vgap=50, figArray=figures(m, false));   
      
  Figure testFigure(Model m) {
      return demoFig(m);
