@@ -63,8 +63,8 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    int lwo = getLineWidth(f);
    if (f.r<0 && f.width>=0 && f.height>=0) f.r = min(f.width, f.height)/2;
         if (f.r>=0) {r+= salix::SVG::r("<f.r>");
-                r+= salix::SVG::cx("<f.at[0]+f.r+lwo/2>");
-                r+= salix::SVG::cy("<f.at[1]+f.r+lwo/2>");
+                r+= salix::SVG::cx("<f.at[0]+f.width/2+lwo/2>");
+                r+= salix::SVG::cy("<f.at[1]+f.height/2+lwo/2>");
                 }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -274,6 +274,12 @@ Figure pullDim(Figure f:path(list[str] _)) {
       f.nodes = r;
       return f;
       }
+      
+Figure pullDim(Figure f:emptyFigure()) {
+      f.width = 0;
+      f.height = 0;
+      return f;
+      }
 
 Figure pullDim(Figure f:overlay()) {
     if (f.size != <0, 0>) {
@@ -314,6 +320,10 @@ default Figure pullDim(Figure f) {
         if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = round(f.grow*getGrowFactor(f, g)*g.width) + lwi+round(g.at[0])+lwo;
         if (f.height<0 && g.height>=0) f.height = round(f.grow*getGrowFactor(f, g)*g.height) + lwi+round(g.at[1])+lwo;
+        if (shapes::Figure::circle():=f) {
+            f.width = max(f.width, f.height);
+            f.height = max(f.width, f.height);
+        }
         // To Do the case of a circle
         }
      if (grid():=f || vcat():=f || hcat():=f) {
@@ -335,12 +345,14 @@ default Figure pullDim(Figure f) {
                   int lwi = getLineWidth(v);
                   int colWidth = v.width>=0?(v.width+lwi+v.padding[0]+v.padding[2]+round(v.at[0])):-1;
                   if (maxColWidth[i]<colWidth) maxColWidth[i] = colWidth;
-                  if (h1>=0) if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding[1]+v.padding[3]+round(v.at[1])]);else h1=-1;
+                  if (h1>=0) {
+                      if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding[1]+v.padding[3]+round(v.at[1])]);else h1=-1;
+                      }
                   r += [v]; 
                   i += 1;     
                   }
             nc = max(nc, size(g));
-            if (height>=0) if (h1>=0) height+=h1; else height = -1;     
+            if (height>=0) {if (h1>=0) height+=h1; else height = -1; }    
             z+=[r];
             } 
           int width = sum(maxColWidth);  
@@ -349,7 +361,7 @@ default Figure pullDim(Figure f) {
           if (vcat():=f) f.figs = [head(h)|list[Figure] h<-z];
           else
           if (hcat():=f) f.figs = head(z);
-          if (f.width<0 && width>-0) f.width = width+nc*(f.hgap+2*lw)+f.hgap; 
+          if (f.width<0 && width>=0) f.width = width+nc*(f.hgap+2*lw)+f.hgap; 
           if (f.height<0 && height>=0) f.height = height+size(z)*(f.vgap+2*lw)+f.vgap;
           }
      return f;
@@ -568,7 +580,7 @@ void eval(Figure f:htmlText(value v)) {
     }
     
  void eval(Figure f:svgText(value v)) {
-     if(str s:=v) text_(fromTextPropertiesToSalix(f, true)+[s]);
+     if(str s:=v) salix::SVG::text_(fromTextPropertiesToSalix(f, true)+[(){salix::Core::_svgText(s);}]);
     }
     
 void eval(Figure f:vcat()) {

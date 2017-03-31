@@ -17,7 +17,7 @@ import IO;
 data Msg;
 
 @doc{Create a text node.}
-void text(value v) = _text(v);
+void text(value v) = _htmlText(v);
 
 
 @doc{The element render functions below all call build

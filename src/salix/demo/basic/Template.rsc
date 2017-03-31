@@ -7,19 +7,22 @@ import salix::Core;
 import salix::App;
 import salix::LayoutFigure;
 
-alias Model = tuple[num x, num y];
+alias Model = tuple[int width, int height];
 
-Model startModel = <0, 0>;
+
+Model startModel = <800, 1200>;
 
 data Msg
-   = moveX(num x)
+   = resizeX(int id, real x)
+   | resizeY(int id, real y)
    ;
    
  Model update(Msg msg, Model m) {
     switch (msg) {
-       case moveX(num x): 
+       case resizeX(_, real x): m.width = round(x);
+       case resizeY(_, real y): m.height = round(y);
+       }
      return m;
-     }
 }
 
 Model init() = startModel;
@@ -39,7 +42,7 @@ void myView(Model m) {
 
 App[Model] testApp() {
    return app(init, myView, update, 
-    |http://localhost:9103|, |project://salix/src|);
+    |http://localhost:9103|, |project://mondriaan/src|);
    }
    
 public App[Model] c = testApp();

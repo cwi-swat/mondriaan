@@ -366,7 +366,6 @@ function createNodes(selection, g, shapes) {
     labelGroup.attr("transform", "translate(" +
       ((node.paddingLeft - node.paddingRight) / 2) + "," +
       ((node.paddingTop - node.paddingBottom) / 2) + ")");
-    var r = 30;
     var shapeSvg =  
                shape(d3.select(this), bbox, node);
     util.applyStyle(shapeSvg, node.style);
@@ -699,18 +698,12 @@ module.exports = addLabel;
 function addLabel(root, node, location) {
 	var label = node.label;
 	var labelSvg = root.append("g");
-   if (node.class=="svg") {
-	   addSVGLabel(labelSvg, node);
-   }
-   else
-   
-   
   // Allow the label to be a string, a function that returns a DOM element, or
   // a DOM element itself.
-  //if (node.labelType === "svg") {
-  //  addSVGLabel(labelSvg, node);
-     
-   if (typeof label !== "string" || node.labelType === "html") {
+  if (typeof labelType === "svg") {
+      addSVGLabel(labelSvg, node); 
+      }
+   else if (typeof label !== "string" || node.labelType === "html") {
     addHtmlLabel(labelSvg, node);
   } else {
     addTextLabel(labelSvg, node);
