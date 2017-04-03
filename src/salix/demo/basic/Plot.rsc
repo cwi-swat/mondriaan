@@ -56,12 +56,14 @@ Figure nGon(Model m) {
 
 Figure testFigure(Model m) {
      int n  = 20;
-     return vcat(vgap=10, width = round(100*2*PI()), figs=[
+     return vcat(vgap=10,  figs=[
        box(lineWidth=2, lineColor="black",  fig=overlay(size=<round(100*2*PI()), 210>, figs=[
        path([p_.M(0, sin(m[0].x))]+[p_.L(m[0].f*2*PI()*i/n, sin(2*PI()*(i/n)+m[0].x))|num i<-[1, 2..n+1]]
-       ,scaleX=100, scaleY=-100, at=<0, 105>, fillColor="none", lineColor="red", midMarker=circle(r=3, fillColor="black"))
+       viewBox=<0, -1, 2*PI(), 2>, fillColor="none", lineColor="red"   , midMarker=circle(r=0.06, fillColor="black")
+       )
        ,path([p_.M(0, cos(m[1].x))]+[p_.L(m[1].f*2*PI()*i/n, cos(2*PI()*(i/n)+m[1].x))|num i<-[1,2..n+1]]
-       ,scaleX=100, scaleY=-100, at=<0, 105>, fillColor="none", lineColor="blue", midMarker=box(size=<6, 6>, lineColor="black"))
+       viewBox=<0, -1, 2*PI(), 2>,  fillColor="none", lineColor="blue" //, midMarker=box(size=<6, 6>, lineColor="black")
+       )
        ]))
        , hcat(height=30,  /*width = round(100*2*PI()),*/ align = topLeft, hgap=0, figs=[
               box(fig=htmlText("sin: x=<m[0].x>", fontColor="red"), lineColor="black"), box(fig=htmlText("cos: x=<m[1].x>", fontColor="blue"), lineColor="black")])
@@ -73,7 +75,7 @@ void myView(Model m) {
         h2("Figure using SVG");
         // fig(testFigure(m), width = 800, height = 350); 
         // fig(nGon(m, 4, 50, 0), width = 800, height = 350); 
-        fig(nGon(m)); 
+        fig(testFigure(m)); 
         slider([[
                   [<moveX, 0, "sin:", 0, 3.14, 0.1, 0> ]
                  ,[<moveX, 1, "cos:", 0, 3.14, 0.1, 0> ]

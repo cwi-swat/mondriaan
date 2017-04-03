@@ -52,7 +52,7 @@ Figure testFigure(Model m) {
     Figure top (Alignment align, str innerFill)  =   box(fig=middle(align, innerFill), grow=1.4, fillColor="lightyellow", lineWidth = 16, lineColor="brown"
                                                    , padding=<4, 4, 4, 4>, at=<0, 0>);
     return box(lineWidth=4, fig = 
-           grid(borderWidth = 4,  vgap=2, hgap = 2, borderStyle="solid", align = topLeft, figArray=
+           grid(borderWidth = 0,  vgap=2, hgap = 2, borderStyle="solid", align = topLeft, figArray=
              [
               [top(m.align1, m.innerFill1), top(m.align2, m.innerFill2)]
               ,[top(m.align1, m.innerFill2), top(m.align2, m.innerFill1)]
