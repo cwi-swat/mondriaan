@@ -12,7 +12,6 @@ import salix::Slider;
 public Figure fsm(Model m){
 	Figure b(str label) =  box( lineColor="black", lineWidth=2, size=<120, 30>,
 	fig=htmlText(label, fontWeight="bold"), fillColor="whitesmoke", rounded=<5,5>, padding=<0,6, 0, 6>, tooltip = label
-	                                          ,id = newName()
 	                                          );	                                          
     list[tuple[str, Figure]] states = [ 	
                 <"CLOSED", 		ngon(n=4, r = 50, lineColor="black",lineWidth=1, fig=htmlText("CLOSED", fontWeight="bold"), fillColor="#f77", rounded=<5,5>, padding=<0, 5,0, 5>, tooltip = "CLOSED")>, 

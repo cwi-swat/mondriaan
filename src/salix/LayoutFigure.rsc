@@ -60,13 +60,13 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    list[value] r =[];
    num lwo = getLineWidth(f);
-   if (f.rx<0 && f.width>=0) f.rx = (f.width-lwo)/2;
-        if (f.ry<0 && f.height>=0) f.ry = (f.height-lwo)/2;
+        if (f.rx<0 && f.width>=0) f.rx = (f.width/*-borderWidth*/)/2;
+        if (f.ry<0 && f.height>=0) f.ry = (f.height/*-borderWidth*/)/2;
         if (f.rx>=0) {r+= salix::SVG::rx("<f.rx>");
                       r+= salix::SVG::cx("<f.at[0]+f.rx+lwo/2>");
                       }
         if (f.ry>=0) {r+= salix::SVG::ry("<f.ry>");
-                      r+= salix::SVG::cy("<f.at[1]+f.ry+lwo/2>");
+                      r+= salix::SVG::cy("<f.at[1]+f.ry+lwo/2.0>");
                       }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -230,7 +230,7 @@ void() tableRows(Figure f) {
 bool isGrid(Figure f) = hcat():=f || vcat():= f || grid():=f;
     
 num getGrowFactor(Figure f, Figure g) {
-    if ((shapes::Figure::circle():=f||shapes::Figure::ellipse():=f)&&(box():=g || isGrid(g))) return sqrt(2);
+    if ((shapes::Figure::circle():=f||shapes::Figure::ellipse():=f||shapes::Figure::ngon():=f)&&(box():=g || isGrid(g))) return sqrt(2);
     return 1;
     }
     
@@ -292,10 +292,10 @@ default Figure pullDim(Figure f) {
         }
      if (shapes::Figure::ellipse():=f) {
            if (f.width<0 && f.rx>=0) {
-              f.width = 2 * f.rx; 
+              f.width = 2 * f.rx/*+getLineWidth(f)*/; 
               }
            if (f.height<0 && f.ry>=0) {
-              f.height = 2 * f.ry; 
+              f.height = 2 * f.ry/*+getLineWidth(f)*/; 
               }
            }
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
@@ -307,11 +307,15 @@ default Figure pullDim(Figure f) {
         if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = f.grow*getGrowFactor(f, g)*g.width + lwi+ g.at[0]+lwo;
         if (f.height<0 && g.height>=0) f.height = f.grow*getGrowFactor(f, g)*g.height + lwi +g.at[1]+lwo;
-        if (shapes::Figure::circle():=f) {
+        if (f.width>0 && (f.height>0 && shapes::Figure::circle():=f|| f.height>0 && shapes::Figure::ngon():=f)) {
             f.width = max(f.width, f.height);
             f.height = max(f.width, f.height);
+            if (isGrid(g)) f.r = (f.width-lwi)/2;
         }
-        // To Do the case of a circle
+        if (f.width>0 && f.height>0 && shapes::Figure::ellipse():=f && (isGrid(g))) {
+            f.rx = (f.width-lwi)/2;
+            f.ry = (f.height-lwi)/2;
+        }
         }
      if (grid():=f || vcat():=f || hcat():=f) {
          list[list[Figure]] z =[];

@@ -257,10 +257,7 @@ public data Figure(
    | circle(num cx = -1, num cy = -1, num r=-1, Figure fig=emptyFigure())
 
 // regular polygon   
-   | ngon(int n=3, num r=-1, num angle = 0, Figure fig=emptyFigure(),
-        Rescale scaleX = <<0,1>, <0, 1>>,
-   	    Rescale scaleY = <<0,1>, <0, 1>>
-     )	
+   | ngon(int n=3, num r=-1, num angle = 0, Figure fig=emptyFigure())	
    
    | polygon(Points points=[], bool fillEvenOdd = true,
             bool yReverse = false,
@@ -859,15 +856,6 @@ public str randomColor() =  colors[arbInt(size(colors))][0];
               Figure(Figure f, value c) {g.fig = f; return g;}
               ;}
               
-public str newName() {
-  occur+=1;
-  return "myName<occur>";
-  }
-  
-public str newId() {
-  occur+=1;
-  return "myName<occur>";
-  }
   
 str fileName(loc l) {
      str p = l.path;

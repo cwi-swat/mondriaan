@@ -63,9 +63,9 @@ public Figure newEllipse(Model m, str lc, Figure el) {
 public Figure ellipses(Model m) {
       list[str] colors = ["red","blue" ,"grey","magenta", "brown", "green"];
       return hcat(padding=<0, 0, 0, 0>, fillColor="none",  hgap = 6,  figs = [
-      (idEllipse(17, 12) |newEllipse(m, e,  it)| e<-colors)
+      (idEllipse(34, 24) |newEllipse(m, e,  it)| e<-colors)
       ,
-      box(size=<150, 100>, fig=(idEllipse(-1, -1) |newEllipse(m, e, it)| e<-colors))
+      box(size=<250, 150>, fig=(idEllipse(-1, -1) |newEllipse(m, e, it)| e<-colors))
       ]);
       ;
       }

@@ -33,7 +33,8 @@ Figure testFigure(Model m) {
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m), width = 600, height = 700);
+        // fig(testFigure(m), width = 600, height = 700);
+        fig(extra(), width = 600, height = 700);
         });
     }
     
@@ -54,8 +55,8 @@ public void main() {
  Figure place(str fill) = box(size=<25, 25>, lineColor="grey", fillColor = fill);
  
  Figure _tetris1() = 
-       circle(lineColor="black", grow= sqrt(2), fig=
-          grid( vgap=0, hgap= 0// , cellAlign = bottomRight
+       circle(lineColor="black", fig=
+          grid( borderWidth = 0, borderStyle="groove", vgap=0, hgap= 0// , cellAlign = bottomRight
        , 
        figArray=[
        [place("blue"), emptyFigure()]
@@ -75,11 +76,11 @@ Figure _tetris2() =
        ]);
        
 Figure _tetris3() = 
-       grid(vgap=0, hgap= 0,cellAlign = bottomRight,
-       figArray=[
+       circle(lineColor="black", lineWidth= 4, fig= grid(vgap=0, hgap= 0 // ,cellAlign = bottomRight
+       , figArray=[
        [place("red"), place("red")]
       ,[place("red"), place("red")]
-       ]);
+       ]));
     
        
 Figure _tetris4() = 
@@ -97,16 +98,18 @@ Figure _tetris5() =
        ]);
        
 Figure _tetris6() = 
-       grid(vgap=0, hgap= 0, 
-       cellAlign = bottomRight,
-       figArray=[
+        circle(lineColor="black", lineWidth= 4, fig= grid(vgap=0, hgap= 0
+      // ,cellAlign = bottomRight
+       , figArray=[
        [place("brown")]
       ,[place("brown")]
       ,[place("brown")]
       ,[place("brown")]
-       ]);
+       ]));
        
 public Figure tetris() = hcat(borderStyle="ridge", borderWidth = 4, // align = bottomRight,
 lineWidth = 1, 
 figs=[_tetris1(), _tetris2(),_tetris3(), _tetris4(), _tetris5(), _tetris6()]);
+
+public Figure extra()=ngon(n=4,  angle=PI()/4, grow = sqrt(2.0), align = centerMid, lineWidth=8, lineColor="red", fig = box(lineWidth=6, lineColor="blue", size=<200,100>));
  
