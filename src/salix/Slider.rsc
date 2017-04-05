@@ -6,6 +6,8 @@ data Msg;
 
 Msg(real) partial(Msg(int, real) f, int p) {return Msg(real y){return f(p, y);};}
 
+alias SliderBar = tuple[Msg(int, real) msg, int id, str label, num low, num high, num step, num val, str left, str right];
+
 void _slider(Msg(real) msg, num low, num high, num step, num val) {
     salix::HTML::input(
             salix::HTML::\type("range")
@@ -18,14 +20,14 @@ void _slider(Msg(real) msg, num low, num high, num step, num val) {
     }
     
    
-void tableCell(Msg(int, real) msg, int id, num low, num high, num step, num val, str label) {
+void tableCell(Msg(int, real) msg, int id, num low, num high, num step, num val, str label, str left, str right) {
      td(label);
-     td("<low>");
+     td(left);
      td(() {_slider(partial(msg ,id), low, high, step, val);});
-     td("<high>");
+     td(right);
      }
    
-void tableRow(list[list[tuple[Msg(int, real) msg, int id, str label, num low, num high, num step, num val]]] sliders) {
+void tableRow(list[list[SliderBar]] sliders) {
       list[tuple[str, str]] styles=[];     
        styles += <"border-spacing", "5px 5px">;
        styles+= <"border-collapse", "separate">;
@@ -39,20 +41,20 @@ void tableRow(list[list[tuple[Msg(int, real) msg, int id, str label, num low, nu
               table(salix::HTML::style(styles), (){
               for (slid <- slids)
                 tr((){
-                  tableCell(slid.msg, slid.id, slid.low, slid.high, slid.step, slid.val, slid.label);
+                  tableCell(slid.msg, slid.id, slid.low, slid.high, slid.step, slid.val, slid.label, slid.left, slid.right);
                  });
             });
             });}
            });
    }
    
-void slider(list[list[list[tuple[Msg(int, real) msg, int id, str label, num low, num high, num step, num val]]]] sliders) { 
+void slider(list[list[list[SliderBar]]] sliders) { 
        list[tuple[str, str]] styles=[];     
        styles += <"border-spacing", "5px 5px">;
        styles+= <"border-collapse", "separate">;
        // styles+= <"width", "1000px">;
        table(salix::HTML::style(styles), (){
-            for (list[list[tuple[Msg(int, real) msg, int id, str label, num low, num high, num step, num val]]] slids<-sliders) {
+            for (list[list[SliderBar]] slids<-sliders) {
                 tableRow(slids);                      
                 }
            });

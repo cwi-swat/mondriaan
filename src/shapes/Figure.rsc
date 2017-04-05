@@ -19,7 +19,6 @@ import lang::json::IO;
 
 alias Position = tuple[num x, num y];
 
-alias Rotate = tuple[num angle, num x, num y];
 
 alias Rescale = tuple[tuple[num, num], tuple[num, num]];
 
@@ -180,8 +179,7 @@ public data Figure(
 		tuple[num left, num top, num right, num bottom] padding = <0, 0, 0, 0>, // left, top, right, bottom 
 		num width = -1,
 		num height = -1,
-		Position at = <0, 0>,
-		Rotate rotate = <0, -1, -1>, 
+		Position at = <0, 0>, 
 		Alignment align = <0.5, 0.5>,
 		Alignment cellAlign = <-1, -1>, 
 		num bigger = 1.0,
@@ -303,8 +301,7 @@ public data Figure(
    | atX(int x, Figure fig)				// TODO: how to handle negative values?
    | atY(int y, Figure fig)
    
-   | rotateDeg(num angle, int x, int y, Figure fig)
-   | rotateDeg(num angle, Figure fig)
+   | rotate(num angle, Figure fig, num cx = -1, num cy = -1, num r=-1) // in Radians
    
 // Input elements
    | buttonInput(str txt, bool disabled=false,  value \value = "")

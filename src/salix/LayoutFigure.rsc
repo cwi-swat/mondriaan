@@ -11,7 +11,6 @@ import Prelude;
 
 data Figure = root(Figure fig= emptyFigure());
 
-   		    	
 data Event = onclick(Msg m);
 
 value vAlign(Alignment align) {
@@ -28,6 +27,13 @@ value hAlign(Alignment align) {
        return "";   
        }
        
+num diag(num a, num b) = sqrt(a*a+b*b);
+
+str toP(num e) {
+        num v = abs(e);
+        return "<e<0?"-":""><toInt(v)>.<toInt(v*10)%10><toInt(v*100)%10><toInt(v*1000)%10>";
+        }
+        
  num getLineWidth(Figure f) {
       num lw = isGrid(f)?f.borderWidth:f.lineWidth;
       return (lw>=0?lw:0);
@@ -45,13 +51,35 @@ value hAlign(Alignment align) {
    return r;
    }
    
+list[value] fromFigureAttributesToSalix(f:shapes::Figure::rotate(num angle, Figure g)) {
+   list[value] r =[];
+   num lwo = getLineWidth(f);
+   num alpha = 180*angle/PI();
+   if (f.r<0 && f.width>=0 && f.height>=0) {
+          f.r = min(f.width, f.height)/2;
+          if (isGrid(g)) f.r -= getLineWidth(g)/2;
+          } 
+        if (f.r>=0) {r+= salix::SVG::r("<f.r>");
+                num xc = f.width/2+lwo/2;
+                num yc = f.height/2+lwo/2;
+                r+= salix::SVG::cx("<toP(xc)>");    
+                r+= salix::SVG::cy("<toP(yc)>"); 
+                r+= salix::SVG::transform("rotate(<toP(alpha)>, <toP(xc)>, <toP(yc)>)");         
+                }
+   r+=fromCommonFigureAttributesToSalix(f);
+   return r; 
+   }
+   
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    list[value] r =[];
    num lwo = getLineWidth(f);
-   if (f.r<0 && f.width>=0 && f.height>=0) f.r = min(f.width, f.height)/2;
+   if (f.r<0 && f.width>=0 && f.height>=0) {
+             f.r = min(f.width, f.height)/2;
+             if (isGrid(f.fig)) f.r -= getLineWidth(f.fig)/2;
+             }
         if (f.r>=0) {r+= salix::SVG::r("<f.r>");
-                r+= salix::SVG::cx("<f.at[0]+f.width/2+lwo/2>");
-                r+= salix::SVG::cy("<f.at[1]+f.height/2+lwo/2>");
+                r+= salix::SVG::cx("<toP(f.at[0]+f.width/2+lwo/2)>");
+                r+= salix::SVG::cy("<toP(f.at[1]+f.height/2+lwo/2)>");           
                 }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -230,7 +258,7 @@ void() tableRows(Figure f) {
 bool isGrid(Figure f) = hcat():=f || vcat():= f || grid():=f;
     
 num getGrowFactor(Figure f, Figure g) {
-    if ((shapes::Figure::circle():=f||shapes::Figure::ellipse():=f||shapes::Figure::ngon():=f)&&(box():=g || isGrid(g))) return sqrt(2);
+    if ((shapes::Figure::ellipse():=f||shapes::Figure::ngon():=f)&&(box():=g || isGrid(g))) return sqrt(2);
     return 1;
     }
     
@@ -281,6 +309,22 @@ Figure pullDim(Figure f:overlay()) {
     if (f.height<0) f.height = maxHeight;
     return f;
     }
+    
+Figure pullDim(Figure f:rotate(num angle, Figure g)) {
+    g = pullDim(g);
+    num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
+    if (lwo<0) lwo = 0; 
+    num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
+    if (lwi<0) lwi = 0;
+    Figure r = rotate(angle, g);
+    if (f.width<0 && g.width>=0) r.width = f.grow*g.width + lwi+ g.at[0]+lwo;
+    if (f.height<0 && g.height>=0) r.height = f.grow*g.height + lwi +g.at[1]+lwo;
+    num width = r.width; num height = r.height;
+    r.width = diag(width, height);
+    r.height = diag(width, height); 
+    r.lineWidth = f.lineWidth; r.lineColor = f.lineColor;
+    return r;
+    }
       
 default Figure pullDim(Figure f) {
      if (f.size != <0, 0>) {
@@ -307,10 +351,11 @@ default Figure pullDim(Figure f) {
         if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = f.grow*getGrowFactor(f, g)*g.width + lwi+ g.at[0]+lwo;
         if (f.height<0 && g.height>=0) f.height = f.grow*getGrowFactor(f, g)*g.height + lwi +g.at[1]+lwo;
-        if (f.width>0 && (f.height>0 && shapes::Figure::circle():=f|| f.height>0 && shapes::Figure::ngon():=f)) {
-            f.width = max(f.width, f.height);
-            f.height = max(f.width, f.height);
-            if (isGrid(g)) f.r = (f.width-lwi)/2;
+        if (f.width>0 && f.height>0 && (shapes::Figure::circle():=f|| shapes::Figure::ngon():=f)) {
+            num width = f.width; num height = f.height;
+            f.width = diag(width, height);
+            f.height = diag(width, height);
+            // if (isGrid(g)) f.r = (f.width-lwi)/2;
         }
         if (f.width>0 && f.height>0 && shapes::Figure::ellipse():=f && (isGrid(g))) {
             f.rx = (f.width-lwi)/2;
@@ -555,6 +600,13 @@ void eval(Figure f:root()) {setPrecision(4); svg(svgSize(f)+[() {eval(f.fig);}])
 void eval(Figure f:overlay()) {svg(svgSize(f)+[(){for (g<-f.figs) {svg(svgSize(g)+[() {eval(g);}]);}}]);}
 
 void eval(Figure f:box()) {translate(f.at, (){\rect(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();});}
+
+void eval(Figure f:shapes::Figure::rotate(num angle, Figure g)) {
+        salix::SVG::g(fromFigureAttributesToSalix(f)+[(){
+            salix::SVG::circle(fromFigureAttributesToSalix(f));
+           if (emptyFigure()!:=g) innerFig(f, g)();
+           }]);
+       }
 
 void eval(Figure f:shapes::Figure::circle()) {salix::SVG::circle(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 

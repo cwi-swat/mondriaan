@@ -6,25 +6,25 @@ import salix::HTML;
 import salix::Core;
 import salix::App;
 import salix::LayoutFigure;
+import salix::Slider;
 
-alias Model = tuple[int width, int height];
+alias Model = list[tuple[num phi]];
 
-Model startModel = <800, 1200>;
+Model startModel = [<0>, <0>, <0>, <0>, <0>, <0>];
 
 data Msg
-   = resizeX(int id, real x)
-   | resizeY(int id, real y)
+   = angle(int id, real phi)
    ;
    
  Model update(Msg msg, Model m) {
     switch (msg) {
-       case resizeX(_, real x): m.width = round(x);
-       case resizeY(_, real y): m.height = round(y);
+       case angle(int id, real phi): m[id].phi = phi;
        }
      return m;
 }
 
 Model init() = startModel;
+
 
 Figure testFigure(Model m) {
      return tetris();
@@ -34,7 +34,9 @@ void myView(Model m) {
     div(() {
         h2("Figure using SVG");
         // fig(testFigure(m), width = 600, height = 700);
-        fig(extra(), width = 600, height = 700);
+        fig(tetris(m), width = 800, height = 200);
+        list[list[list[SliderBar]]] sliderBars = [[[<angle, i, "<i+1> angle:", 0, 2*PI(), PI()/64, m[i].phi,"0", "2pi"> ]]|i<-[0..6]];
+        slider(sliderBars);   
         });
     }
     
@@ -54,62 +56,67 @@ public void main() {
      
  Figure place(str fill) = box(size=<25, 25>, lineColor="grey", fillColor = fill);
  
- Figure _tetris1() = 
-       circle(lineColor="black", fig=
+ Figure _tetris1(Model m) = 
+       rotate(m[0].phi,
           grid( borderWidth = 0, borderStyle="groove", vgap=0, hgap= 0// , cellAlign = bottomRight
        , 
        figArray=[
        [place("blue"), emptyFigure()]
       ,[place("blue"), emptyFigure()]
       ,[place("blue"), place("blue")]
-       ])
+       ]),lineColor="black", lineWidth=2
        );
        
 Figure emptFigure() = box(size=<10, 10>);
        
-Figure _tetris2() = 
-       grid(vgap=0, hgap= 0,cellAlign = bottomRight,
+Figure _tetris2(Model m) = 
+       rotate(m[1].phi,grid(vgap=0, hgap= 0,
        figArray=[
        [emptyFigure(), place("blue")]
       ,[emptyFigure(), place("blue")]
       ,[place("blue"), place("blue")]
-       ]);
+       ]));
        
-Figure _tetris3() = 
-       circle(lineColor="black", lineWidth= 4, fig= grid(vgap=0, hgap= 0 // ,cellAlign = bottomRight
+Figure _tetris3(Model m) = 
+       rotate(m[2].phi, grid(vgap=0, hgap= 0
        , figArray=[
        [place("red"), place("red")]
       ,[place("red"), place("red")]
        ]));
     
-       
-Figure _tetris4() = 
-       grid(vgap=0, hgap= 0, cellAlign = bottomRight,
-       figArray=[
+      
+Figure _tetris4(Model m) = 
+       rotate(m[3].phi,grid(vgap=0, hgap= 0,figArray = [
        [place("yellow"), place("yellow"), place("yellow")]
       ,[emptyFigure(), place("yellow"), emptyFigure()]
-       ]);
+       ]));
        
-Figure _tetris5() = 
-       grid(vgap=0, hgap= 0, cellAlign = bottomRight,
-       figArray=[
+Figure _tetris5(Model m) = 
+       rotate(m[4].phi,grid(vgap=0, hgap= 0, figArray = [
        [emptyFigure(), place("darkmagenta"), place("darkmagenta")]
       ,[place("darkmagenta"), place("darkmagenta"), emptyFigure()]
-       ]);
+       ]));
        
-Figure _tetris6() = 
-        circle(lineColor="black", lineWidth= 4, fig= grid(vgap=0, hgap= 0
-      // ,cellAlign = bottomRight
-       , figArray=[
+Figure _tetris6(Model m) = 
+        rotate(m[5].phi,
+       grid (figArray=[
        [place("brown")]
       ,[place("brown")]
       ,[place("brown")]
       ,[place("brown")]
-       ]));
+      ]
+       ));
        
-public Figure tetris() = hcat(borderStyle="ridge", borderWidth = 4, // align = bottomRight,
-lineWidth = 1, 
-figs=[_tetris1(), _tetris2(),_tetris3(), _tetris4(), _tetris5(), _tetris6()]);
+public Figure tetris(Model m) = hcat(borderStyle="ridge", borderWidth = 4, // align = bottomRight,
+// lineWidth = 1, 
+figs=[_tetris1(m), _tetris2(m),_tetris3(m), _tetris4(m), _tetris5(m), _tetris6(m)]);
 
-public Figure extra()=ngon(n=4,  angle=PI()/4, grow = sqrt(2.0), align = centerMid, lineWidth=8, lineColor="red", fig = box(lineWidth=6, lineColor="blue", size=<200,100>));
+public Figure extra()=// ngon(n=4,  angle=PI()/4, grow = sqrt(2.0), align = centerMid, lineWidth=8, lineColor="red", fig = 
+  //  box(lineWidth=6, lineColor="blue", size=<200,100>));
+    
+
+      circle(lineWidth=2, lineColor="gold", fig=hcat(size=<150,100>, figs=[box(lineColor="red", lineWidth=4)]));
+    
+    
+    
  
