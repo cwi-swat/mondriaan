@@ -27,14 +27,14 @@ Model init() = startModel;
 
 
 Figure testFigure(Model m) {
-     return tetris();
+     return extra();
      }
      
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        // fig(testFigure(m), width = 600, height = 700);
-        fig(tetris(m), width = 800, height = 200);
+        fig(testFigure(m), width = 600, height = 700);
+        // fig(tetris(m), width = 800, height = 200);
         list[list[list[SliderBar]]] sliderBars = [[[<angle, i, "<i+1> angle:", 0, 2*PI(), PI()/64, m[i].phi,"0", "2pi"> ]]|i<-[0..6]];
         slider(sliderBars);   
         });
@@ -115,7 +115,9 @@ public Figure extra()=// ngon(n=4,  angle=PI()/4, grow = sqrt(2.0), align = cent
   //  box(lineWidth=6, lineColor="blue", size=<200,100>));
     
 
-      circle(lineWidth=2, lineColor="gold", fig=hcat(size=<150,100>, figs=[box(lineColor="red", lineWidth=4)]));
+      // circle(lineWidth=16, lineColor="gold", fig=hcat(borderWidth=0, lineWidth = 0, size=<150,100>, figs=[box(lineColor="red", lineWidth=8)]));
+      circle(lineWidth=16, grow=1.0, lineColor="gold", fig = box(size=<150,100>,lineColor="red", lineWidth=8));
+    
     
     
     

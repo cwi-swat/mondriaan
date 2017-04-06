@@ -42,7 +42,7 @@ void() fn(Model m)  = {
 
 data Msg
   = tick(int time)
-  | toggle()
+  | toggle(str lab)
   ;
 
 list[Sub] subs(Model m) = [timeEvery(tick, 1000) | m.running ];
@@ -57,7 +57,7 @@ Model update(Msg msg, Model t) {
 
 App[Model] clockApp() = 
   app(init, view, update, 
-    |http://localhost:9102|, |project://salix/src|,
+    |http://localhost:9102|, |project://mondriaan/src|,
     subs = subs); 
 
 

@@ -122,12 +122,12 @@ public list[list[Figure]] figures(Model m, bool tooltip) =
         h2("Figure using SVG");
         fig(testFigure(m));
          slider([[
-                  [<shrink, 0, "shrink box:", 0.9, 1, 0.01, 1> ]
-                 ,[<grow, 0, "grow box:", 1, 1.2, 0.01, 1> ]
-                 ,[<shrink, 1, "shrink ellipse:", 0.9, 1, 0.01, 1> ]
-                 ,[<grow, 1, "grow ellipse:", 1, 1.2, 0.01, 1> ]
-                 ,[<shrink, 2, "shrink polygon:", 0.9, 1, 0.01, 1> ]
-                 ,[<grow, 2, "grow polygon:", 1, 1.2, 0.01, 1> ]
+                  [<shrink, 0, "shrink box:", 0.9, 1, 0.01, 1,"", ""> ]
+                 ,[<grow, 0, "grow box:", 1, 1.2, 0.01, 1,"", ""> ]
+                 ,[<shrink, 1, "shrink ellipse:", 0.9, 1, 0.01, 1,"", ""> ]
+                 ,[<grow, 1, "grow ellipse:", 1, 1.2, 0.01, 1,"", ""> ]
+                 ,[<shrink, 2, "shrink polygon:", 0.9, 1, 0.01, 1,"", ""> ]
+                 ,[<grow, 2, "grow polygon:", 1, 1.2, 0.01, 1,"", ""> ]
                  ]]);   
         });
     }

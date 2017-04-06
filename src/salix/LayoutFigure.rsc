@@ -88,13 +88,21 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    list[value] r =[];
    num lwo = getLineWidth(f);
-        if (f.rx<0 && f.width>=0) f.rx = (f.width/*-borderWidth*/)/2;
-        if (f.ry<0 && f.height>=0) f.ry = (f.height/*-borderWidth*/)/2;
-        if (f.rx>=0) {r+= salix::SVG::rx("<f.rx>");
+        if (f.rx<0 && f.width>=0) {
+            f.rx = (f.width/*-borderWidth*/)/2;
+            if (isGrid(f.fig)) f.rx -= getLineWidth(f.fig)/2;
+            }
+        if (f.ry<0 && f.height>=0) {
+            f.ry = (f.height/*-borderWidth*/)/2;
+            if (isGrid(f.fig)) f.ry -= getLineWidth(f.fig)/2;
+            }
+        if (f.rx>=0) {
+                      r+= salix::SVG::rx("<f.rx>");
                       r+= salix::SVG::cx("<f.at[0]+f.rx+lwo/2>");
                       }
-        if (f.ry>=0) {r+= salix::SVG::ry("<f.ry>");
-                      r+= salix::SVG::cy("<f.at[1]+f.ry+lwo/2.0>");
+        if (f.ry>=0) {                  
+                      r+= salix::SVG::ry("<f.ry>");
+                      r+= salix::SVG::cy("<f.at[1]+f.ry+lwo/2.0>");         
                       }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -264,6 +272,19 @@ num getGrowFactor(Figure f, Figure g) {
     
 bool hasFigField(Figure f) = root():=f || box():=f || shapes::Figure::circle():=f || shapes::Figure::ellipse():=f 
        || shapes::Figure::ngon():=f;
+ 
+ 
+Figure adjustParameters(Figure f) {      
+   if (f.size != <0, 0>) {
+       if (f.width<0) f.width = f.size[0];
+       if (f.height<0) f.height = f.size[1];
+       } 
+    //if (f.hgrow<0) f.hgrow = f.grow;
+    //if (f.vgrow<0) f.vgrow = f.grow;
+    //if (f.hshrink<0) f.hshrink = f.shrink;
+    //if (f.vshrink<0) f.vshrink = f.shrink;  
+    return f;
+    }
 
 Figure pullDim(atXY(int x, int y, Figure g)) {
       g.at = <x, y>;
@@ -278,10 +299,7 @@ Figure pullDim(Figure f:path(list[str] _)) {
       }
       
  Figure pullDim(Figure f:shapes::Figure::graph()) {
-      if (f.size != <0, 0>) {
-          if (f.width<0) f.width = f.size[0];
-          if (f.height<0) f.height = f.size[1];
-       }
+      f = adjustParameters(f);
       list[tuple[str, Figure]] r = [];
       for (tuple[str id, Figure fig] d<-f.nodes) {
             r+=[<d.id, pullDim(d.fig)>];
@@ -297,10 +315,7 @@ Figure pullDim(Figure f:emptyFigure()) {
       }
 
 Figure pullDim(Figure f:overlay()) {
-    if (f.size != <0, 0>) {
-       if (f.width<0) f.width = f.size[0];
-       if (f.height<0) f.height = f.size[1];
-       }  
+    f = adjustParameters(f);
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
     num maxWidth = max([h.width+h.at[0]+(getLineWidth(h))|h<-f.figs]);
@@ -310,15 +325,24 @@ Figure pullDim(Figure f:overlay()) {
     return f;
     }
     
+Figure pullDim(Figure f:htmlText(_)) {
+    return adjustParameters(f);
+    }
+    
+Figure pullDim(Figure f:svgText(_)) {
+    return adjustParameters(f);
+    }
+    
 Figure pullDim(Figure f:rotate(num angle, Figure g)) {
+    f = adjustParameters(f);
     g = pullDim(g);
     num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
     if (lwo<0) lwo = 0; 
     num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
     if (lwi<0) lwi = 0;
     Figure r = rotate(angle, g);
-    if (f.width<0 && g.width>=0) r.width = f.grow*g.width + lwi+ g.at[0]+lwo;
-    if (f.height<0 && g.height>=0) r.height = f.grow*g.height + lwi +g.at[1]+lwo;
+    if (f.width<0 && g.width>=0) r.width = f.hgrow*g.width + lwi+ g.at[0]+lwo;
+    if (f.height<0 && g.height>=0) r.height = f.vgrow*g.height + lwi +g.at[1]+lwo;
     num width = r.width; num height = r.height;
     r.width = diag(width, height);
     r.height = diag(width, height); 
@@ -327,10 +351,7 @@ Figure pullDim(Figure f:rotate(num angle, Figure g)) {
     }
       
 default Figure pullDim(Figure f) {
-     if (f.size != <0, 0>) {
-       if (f.width<0) f.width = f.size[0];
-       if (f.height<0) f.height = f.size[1];
-       }  
+     f = adjustParameters(f); 
      if ((shapes::Figure::circle():=f || shapes::Figure::ngon():=f) && f.width<0 && f.height<0 && f.r>=0) {
             f.width = 2 * f.r; f.height = 2 * f.r;
         }
@@ -349,17 +370,12 @@ default Figure pullDim(Figure f) {
         if (lwo<0) lwo = 0; 
         num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
         if (lwi<0) lwi = 0;
-        if (f.width<0 && g.width>=0) f.width = f.grow*getGrowFactor(f, g)*g.width + lwi+ g.at[0]+lwo;
-        if (f.height<0 && g.height>=0) f.height = f.grow*getGrowFactor(f, g)*g.height + lwi +g.at[1]+lwo;
-        if (f.width>0 && f.height>0 && (shapes::Figure::circle():=f|| shapes::Figure::ngon():=f)) {
+        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ g.at[0]+lwo;
+        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi +g.at[1]+lwo;
+        if (f.width>0 && f.height>0 && (shapes::Figure::circle():=f)) {
             num width = f.width; num height = f.height;
             f.width = diag(width, height);
             f.height = diag(width, height);
-            // if (isGrid(g)) f.r = (f.width-lwi)/2;
-        }
-        if (f.width>0 && f.height>0 && shapes::Figure::ellipse():=f && (isGrid(g))) {
-            f.rx = (f.width-lwi)/2;
-            f.ry = (f.height-lwi)/2;
         }
         }
      if (grid():=f || vcat():=f || hcat():=f) {
@@ -445,7 +461,7 @@ list[list[Figure]] expand(list[list[Figure]] m) {
          if (maxHeight>=0) definedHeight= definedHeight+maxHeight;
          if (maxLw>=0) sumLw+=maxLw;
          for (Figure h<-g) {
-              Figure x = h;
+              Figure x = h; 
               if (x.height<0) x.height = maxHeight;
               r+=x;
               }
@@ -454,6 +470,7 @@ list[list[Figure]] expand(list[list[Figure]] m) {
           }
      num computedHeight = -1;
      if (nUndefinedRows>0) computedHeight = (height-definedHeight-size(figArray)*(vgap+2*lw)-vgap-sumLw)/nUndefinedRows;
+     // println("Height: <height> <computedHeight> <definedHeight> <nUndefinedRows> size(figArray)");
      return <computedHeight, z>;  
      }
      
@@ -482,7 +499,8 @@ list[list[Figure]] expand(list[list[Figure]] m) {
          if (maxWidth<0) nUndefinedCols+=1;    
          }
      num computedWidth = -1;
-     if (nUndefinedCols>0) computedWidth = (width-definedWidth-size(figArray)*(hgap+2*lw)-hgap-2*sumLw)/nUndefinedCols;
+     if (nUndefinedCols>0) computedWidth = (width-definedWidth-size(figArray)*(hgap+2*lw)-hgap-sumLw)/nUndefinedCols;
+     // println("Width: <width> <computedWidth> <definedWidth> <nUndefinedCols> size(figArray)");
      return <computedWidth, transpose(z)>;  
      }
      
@@ -528,8 +546,8 @@ list[list[Figure]] expand(list[list[Figure]] m) {
            if (lwo<0) lwo = 0; 
            num  lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
            if (lwi<0) lwi = 0;
-           if (g.width<0 && f.width>=0) g.width = g.shrink*(f.width-lwo) - lwi -g.at[0];
-           if (g.height<0 && f.height>=0) g.height = g.shrink*(f.height-lwo) -lwi - g.at[1];
+           if (g.width<0 && f.width>=0) g.width = g.hshrink*(f.width-lwo) - lwi -g.at[0];
+           if (g.height<0 && f.height>=0) g.height = g.vshrink*(f.height-lwo) -lwi - g.at[1];
            f.fig = pushDim(g);
      }
      if (grid():=f || vcat():=f || hcat():=f) {
@@ -545,8 +563,8 @@ list[list[Figure]] expand(list[list[Figure]] m) {
               list[Figure] r = [];
               for (Figure h<-g) {  
                   Figure q = h;
-                  if (cellsW.width>=0 && q.width<0) q.width =   cellsW.width*q.shrink-q.at[0]-lw-q.padding[0]-q.padding[2]; 
-                  if (cellsH.height>=0 && q.height<0) q.height =   cellsH.height*q.shrink-q.at[1]-lw-q.padding[1]-q.padding[3]; 
+                  if (cellsW.width>=0 && q.width<0) q.width =   cellsW.width*q.hshrink-q.at[0]-lw-q.padding[0]-q.padding[2]; 
+                  if (cellsH.height>=0 && q.height<0) q.height =   cellsH.height*q.vshrink-q.at[1]-lw-q.padding[1]-q.padding[3]; 
                   r += pushDim(q);  
                   }
               z+=[r];
