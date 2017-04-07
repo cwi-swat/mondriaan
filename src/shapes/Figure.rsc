@@ -184,13 +184,12 @@ public data Figure(
 		Alignment cellAlign = <-1, -1>, 
 		num bigger = 1.0,
 		num shrink = 1, 
-		num hshrink = 1, 
-		num vshrink = 1, 
+		num hshrink = -1, 
+		num vshrink = -1, 
 		num grow = 1, 
-		num hgrow = 1, 
-		num vgrow = 1, 
+		num hgrow = -1, 
+		num vgrow = -1, 
 		bool resizable = true,
-		tuple[int,int] gap = <0,0>,
 		num hgap = 0,
 		num vgap = 0,
         bool sizeFromParent = false,
@@ -231,6 +230,7 @@ public data Figure(
 		
 		// Tooltip
 		value tooltip = "",
+		list[tuple[str, str]] style=[],
 		
 		// Panel
 		Figure panel = emptyFigure()
@@ -256,24 +256,7 @@ public data Figure(
 
 // regular polygon   
    | ngon(int n=3, num r=-1, num angle = 0, Figure fig=emptyFigure())	
-   
-   | polygon(Points points=[], bool fillEvenOdd = true,
-            bool yReverse = false,
-            Rescale scaleX = <<0,1>, <0, 1>>,
-   			Rescale scaleY = <<0,1>, <0, 1>>)
-   
-   | shape(list[Vertex] vertices, 				// Arbitrary shape
-   			bool shapeConnected = true, 	// Connect vertices with line/curve
-   			bool shapeClosed = false, 		// Make a closed shape
-   			bool shapeCurved = false, 		// Connect vertices with a spline
-   			bool fillEvenOdd = true,
-   			bool yReverse = true,		
-   			Rescale scaleX = <<0,1>, <0, 1>>,
-   			Rescale scaleY = <<0,1>, <0, 1>>,
-   			Figure startMarker=emptyFigure(),
-   			Figure midMarker=emptyFigure(),
-   			Figure endMarker=emptyFigure()) 
-   	| path(list[str] curve, 	str transform=""	
+   | path(list[str] curve, 	str transform=""	
    			    ,bool fillEvenOdd = true		
    			    ,Figure startMarker=emptyFigure()
    			    ,Figure midMarker=emptyFigure() 
@@ -289,10 +272,10 @@ public data Figure(
 
 // Figure composers
 // borderStyle =  none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset|initial|inherit;              
-   | hcat(Figures figs=[], bool form= false) 					// horizontal and vertical concatenation
-   | vcat(Figures figs=[], bool form= false) 					// horizontal and vertical concatenation 
+   | hcat(Figures figs=[]) 					// horizontal and vertical concatenation
+   | vcat(Figures figs=[]) 					// horizontal and vertical concatenation 
    | overlay(Figures figs=[])				
-   | grid(list[Figures] figArray = [[]], bool form= false) 	// grid of figures
+   | grid(list[Figures] figArray = [[]]) 	// grid of figures
 
 // Figure transformations
 
