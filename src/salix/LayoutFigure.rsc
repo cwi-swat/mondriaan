@@ -30,21 +30,23 @@ value hAlign(Alignment align) {
 num diag(num a, num b) = sqrt(a*a+b*b);
 
 str toP(num e) {
-        str r = "";
+        str r = ".";
         str tl(num v) {
              int n = 4;
              for (int i<-[0..n]) {
                  v = 10*v;
                  r+="<toInt(v)%10>";
                  }
-             for (int i<-[n-1,n-2..0]) {
-                if (r[i]!="0") break;
+             for (int i<-[n,n-1..0]) {
+                if (r[i]!="0") {
+                      break;
+                      }
                 r=  substring(r, 0, size(r)-1);
                 } 
-             return r;
+             return r=="."?"":r;
              }
         num v = abs(e);
-        return "<e<0?"-":""><toInt(v)>.<tl(v)>";
+        return "<e<0?"-":""><toInt(v)><tl(v)>";
         }
         
  num getLineWidth(Figure f) {
@@ -233,11 +235,11 @@ void() innerFig(Figure outer, Figure inner) {
        num widtho = outer.width; num heighto = outer.height;
        num widthi = inner.width; num heighti = inner.height;    
        list[value] svgArgs = [];
-       if (widthi>=0) svgArgs+= salix::SVG::width("<widthi+lwi+inner.at[0]>");
-       if (heighti>=0) svgArgs+= salix::SVG::height("<heighti+lwi+inner.at[1]>");
+       if (widthi>=0) svgArgs+= salix::SVG::width("<toP(widthi+lwi+inner.at[0])>");
+       if (heighti>=0) svgArgs+= salix::SVG::height("<toP(heighti+lwi+inner.at[1])>");
        list[value] foreignObjectArgs = [style(<"line-height", "0">)];
-       if (widtho>=0) foreignObjectArgs+= salix::SVG::width("<widtho-lwo>");
-       if (heighto>=0) foreignObjectArgs+= salix::SVG::height("<heighto-lwo>");
+       if (widtho>=0) foreignObjectArgs+= salix::SVG::width("<toP(widtho-lwo)>");
+       if (heighto>=0) foreignObjectArgs+= salix::SVG::height("<toP(heighto-lwo)>");
        foreignObjectArgs+= salix::SVG::x("<lwo>"); foreignObjectArgs+= salix::SVG::y("<lwo>");
        list[value] tdArgs = fromTdModelToProperties(outer, inner);
        list[value] tableArgs = foreignObjectArgs; 
