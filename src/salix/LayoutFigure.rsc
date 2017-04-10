@@ -85,6 +85,13 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::rotate(num angle, Figu
    return r; 
    }
    
+list[value] fromFigureAttributesToSalix(f:shapes::Figure::at(num x, num y, Figure g)) {
+   list[value] r =[];
+   r+= salix::SVG::transform("translate(<toP(x)>, <toP(y)>)");         
+   r+=fromCommonFigureAttributesToSalix(f);
+   return r; 
+   }
+   
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
    list[value] r =[];
    num lwo = getLineWidth(f);
@@ -93,8 +100,8 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::circle()) {
              if (isGrid(f.fig)) f.r -= getLineWidth(f.fig)/2;
              }
         if (f.r>=0) {r+= salix::SVG::r("<toP(f.r)>");
-                r+= salix::SVG::cx("<toP(f.at[0]+f.width/2+lwo/2)>");
-                r+= salix::SVG::cy("<toP(f.at[1]+f.height/2+lwo/2)>");           
+                r+= salix::SVG::cx("<toP(f.width/2+lwo/2)>");
+                r+= salix::SVG::cy("<toP(f.height/2+lwo/2)>");           
                 }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -113,11 +120,11 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
             }
         if (f.rx>=0) {
                       r+= salix::SVG::rx("<toP(f.rx)>");
-                      r+= salix::SVG::cx("<toP(f.at[0]+f.rx+lwo/2)>");
+                      r+= salix::SVG::cx("<toP(f.rx+lwo/2)>");
                       }
         if (f.ry>=0) {                  
                       r+= salix::SVG::ry("<toP(f.ry)>");
-                      r+= salix::SVG::cy("<toP(f.at[1]+f.ry+lwo/2.0)>");         
+                      r+= salix::SVG::cy("<toP(f.ry+lwo/2.0)>");         
                       }
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
@@ -171,8 +178,8 @@ default list[value] fromFigureAttributesToSalix(Figure f) {
 list[value] svgSize(Figure f) {
    list[value] r =[];
    num lw = getLineWidth(f);
-   if (f.width>=0) r+= salix::SVG::width("<toP(f.width+f.at[0]+lw)>"); 
-   if (f.height>=0) r+= salix::SVG::height("<toP(f.height+f.at[1]+lw)>");
+   if (f.width>=0) r+= salix::SVG::width("<toP(f.width+lw)>"); 
+   if (f.height>=0) r+= salix::SVG::height("<toP(f.height+lw)>");
    return r;
    }
    
@@ -226,17 +233,23 @@ list[value] fromTdModelToProperties(Figure f, Figure g) {
     if (str _:=q) r += vAlign(f.align); else r+=q;
     return r;
     }
+    
+Figure getTransformedFigure(Figure f) {
+   if (at(_, _, Figure g):=f) return g;
+   if (rotate(_, Figure g):=f) return g;
+   return f;
+   }
    
 void() innerFig(Figure outer, Figure inner) {
     return (){
-       num lwo = (ngon():=outer)? outer.lineWidth/cos(PI()/outer.n): getLineWidth(outer);
-       num  lwi = (ngon():=inner)? inner.lineWidth/cos(PI()/inner.n): getLineWidth(inner);
+       num lwo = ngon():=getTransformedFigure(outer)? outer.lineWidth/cos(PI()/outer.n): getLineWidth(outer);
+       num  lwi = ngon():=getTransformedFigure(inner)? inner.lineWidth/cos(PI()/inner.n): getLineWidth(inner);
        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
        num widtho = outer.width; num heighto = outer.height;
        num widthi = inner.width; num heighti = inner.height;    
        list[value] svgArgs = [];
-       if (widthi>=0) svgArgs+= salix::SVG::width("<toP(widthi+lwi+inner.at[0])>");
-       if (heighti>=0) svgArgs+= salix::SVG::height("<toP(heighti+lwi+inner.at[1])>");
+       if (widthi>=0) svgArgs+= salix::SVG::width("<toP(widthi+lwi)>");
+       if (heighti>=0) svgArgs+= salix::SVG::height("<toP(heighti+lwi)>");
        list[value] foreignObjectArgs = [style(<"line-height", "0">)];
        if (widtho>=0) foreignObjectArgs+= salix::SVG::width("<toP(widtho-lwo)>");
        if (heighto>=0) foreignObjectArgs+= salix::SVG::height("<toP(heighto-lwo)>");
@@ -254,8 +267,8 @@ void() tableCells(Figure f, list[Figure] g) {
        list[value] svgArgs = [];
        num width = h.width; num height = h.height;
        num lw = getLineWidth(h);
-       if (width>=0) svgArgs+= salix::SVG::width("<toP(width+lw+h.at[0])>");
-       if (height>=0) svgArgs+= salix::SVG::height("<toP(height+lw+h.at[1])>");
+       if (width>=0) svgArgs+= salix::SVG::width("<toP(width+lw)>");
+       if (height>=0) svgArgs+= salix::SVG::height("<toP(height+lw)>");
        list[value] tdArgs = fromTdModelToProperties(f, h); 
        r+= [() {
            salix::HTML::td(tdArgs+[(){svg(svgArgs+[(){eval(w);}]);}]);
@@ -301,11 +314,6 @@ Figure adjustParameters(Figure f) {
     if (f.vshrink<0) f.vshrink = f.shrink;  
     return f;
     }
-
-Figure pullDim(atXY(int x, int y, Figure g)) {
-      g.at = <x, y>;
-      return pullDim(g);
-      }
       
 Figure pullDim(Figure f:path(list[str] _)) {
       if (emptyFigure()!:=f.startMarker) f.startMarker = pullDim(f.startMarker);
@@ -334,8 +342,8 @@ Figure pullDim(Figure f:overlay()) {
     f = adjustParameters(f);
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
-    num maxWidth = max([h.width+h.at[0]+(getLineWidth(h))|h<-f.figs]);
-    num maxHeight = max([h.height+h.at[1]+(getLineWidth(h))|h<-f.figs]);
+    num maxWidth = max([h.width+(getLineWidth(h))|h<-f.figs]);
+    num maxHeight = max([h.height+(getLineWidth(h))|h<-f.figs]);
     if (f.width<0) f.width = maxWidth;
     if (f.height<0) f.height = maxHeight;
     return f;
@@ -349,6 +357,19 @@ Figure pullDim(Figure f:svgText(_)) {
     return adjustParameters(f);
     }
     
+Figure pullDim(Figure f:at(num x, num y, Figure g)) {
+    f = adjustParameters(f);
+    g = pullDim(g);
+    Figure r = at(x, y, g);
+    r.width = f.width; r.height = f.height;
+    if (r.width<0&& g.width>=0) r.width = g.width + x;
+    if (r.height<0&& g.height>=0) r.height = g.height + y;
+    r.lineWidth = g.lineWidth;
+    r.hgrow = f.hgrow; r.vgrow = f.vgrow;
+    r.hshrink = f.hshrink; r.vshrink = f.vshrink;
+    return r;
+    }
+    
 Figure pullDim(Figure f:rotate(num angle, Figure g)) {
     f = adjustParameters(f);
     g = pullDim(g);
@@ -357,8 +378,8 @@ Figure pullDim(Figure f:rotate(num angle, Figure g)) {
     num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
     if (lwi<0) lwi = 0;
     Figure r = rotate(angle, g);
-    if (f.width<0 && g.width>=0) r.width = f.hgrow*g.width + lwi+ g.at[0]+lwo;
-    if (f.height<0 && g.height>=0) r.height = f.vgrow*g.height + lwi +g.at[1]+lwo;
+    if (f.width<0 && g.width>=0) r.width = f.hgrow*g.width + lwi+ lwo;
+    if (f.height<0 && g.height>=0) r.height = f.vgrow*g.height + lwi +lwo;
     num width = r.width; num height = r.height;
     if (width>=0 && height>=0) {
        r.width = diag(width, height);
@@ -375,10 +396,10 @@ default Figure pullDim(Figure f) {
         }
      if (shapes::Figure::ellipse():=f) {
            if (f.width<0 && f.rx>=0) {
-              f.width = 2 * f.rx/*+getLineWidth(f)*/; 
+              f.width = 2 * f.rx; 
               }
            if (f.height<0 && f.ry>=0) {
-              f.height = 2 * f.ry/*+getLineWidth(f)*/; 
+              f.height = 2 * f.ry; 
               }
            }
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
@@ -388,8 +409,8 @@ default Figure pullDim(Figure f) {
         if (lwo<0) lwo = 0; 
         num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
         if (lwi<0) lwi = 0;
-        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ g.at[0]+lwo;
-        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi +g.at[1]+lwo;
+        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ lwo;
+        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi + lwo;
         if (f.width>0 && f.height>0 && (shapes::Figure::circle():=f)) {
             num width = f.width; num height = f.height;
             f.width = diag(width, height);
@@ -413,10 +434,10 @@ default Figure pullDim(Figure f) {
             for (Figure h<-g)  {
                   Figure v = pullDim(h);
                   num lwi = getLineWidth(v);
-                  num colWidth = v.width>=0?(v.width+lwi+v.padding[0]+v.padding[2]+v.at[0]):-1;
+                  num colWidth = v.width>=0?(v.width+lwi+v.padding[0]+v.padding[2]):-1;
                   if (maxColWidth[i]<colWidth) maxColWidth[i] = colWidth;
                   if (h1>=0) {
-                      if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding[1]+v.padding[3]+v.at[1]]);else h1=-1;
+                      if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding[1]+v.padding[3]]);else h1=-1;
                       }
                   r += [v]; 
                   i += 1;     
@@ -522,11 +543,6 @@ list[list[Figure]] expand(list[list[Figure]] m) {
      return <computedWidth, transpose(z)>;  
      }
      
- Figure pushDim(atXY(num x, num y, Figure g)) {
-      g.at = <x, y>;
-      return pushDim(g);
-      }
-     
  Figure pushDim(Figure f:overlay()) {
     if (isEmpty(f.figs)) return f;
     list[Figure] z =[];
@@ -559,14 +575,35 @@ list[list[Figure]] expand(list[list[Figure]] m) {
     num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
     if (lwi<0) lwi = 0;
     num width = f.width; num height = f.height;
-    if (g.width<0 && width>=0) g.width = g.hshrink*min(width, height)-lwi-g.at[0]-lwo;
-    if (g.height<0 && height>=0) g.height = g.vshrink*min(width, height)-lwi-g.at[1]-lwo; 
+    if (g.width<0 && width>=0) g.width = g.hshrink*min(width, height)-lwi-lwo;
+    if (g.height<0 && height>=0) g.height = g.vshrink*min(width, height)-lwi-lwo; 
     g = pushDim(g);
     Figure r = rotate(angle, g);  
     r.lineWidth = f.lineWidth;
     r.lineColor= f.lineColor;
     r.width = f.width;
     r.height = f.height;
+    return r;
+    }
+    
+ Figure pushDim(Figure f:at(num x, num y, Figure g)) {
+    num shiftX =0; num shiftY = 0;
+    if (g.width<0 && f.width>=0) {
+        g.width = g.hshrink*(f.width-x);
+        shiftX =  ((f.width - x)-g.width)/2;
+        }
+    if (g.height<0 && f.height>=0) {
+         g.height = g.vshrink*(f.height-y); 
+         shiftY =  ((f.height - y)-g.height)/2;
+         }
+    if (g.lineWidth<0) g.lineWidth = f.lineWidth;
+    g = pushDim(g);
+    Figure r = at(x+shiftX, y+shiftY, g);  
+    r.width = f.width;
+    r.height = f.height;
+    r.lineWidth = f.lineWidth;
+    r.hgrow = f.hgrow; r.vgrow = f.vgrow;
+    r.hshrink = f.hshrink; r.vshrink = f.vshrink;  
     return r;
     }
      
@@ -581,8 +618,8 @@ list[list[Figure]] expand(list[list[Figure]] m) {
            if (lwo<0) lwo = 0; 
            num  lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
            if (lwi<0) lwi = 0;
-           if (g.width<0 && f.width>=0) g.width = g.hshrink*(f.width-lwo) - lwi -g.at[0];
-           if (g.height<0 && f.height>=0) g.height = g.vshrink*(f.height-lwo) -lwi - g.at[1];
+           if (g.width<0 && f.width>=0) g.width = g.hshrink*(f.width-lwo) - lwi;
+           if (g.height<0 && f.height>=0) g.height = g.vshrink*(f.height-lwo) -lwi;
            f.fig = pushDim(g);
      }
      if (grid():=f || vcat():=f || hcat():=f) {
@@ -598,8 +635,8 @@ list[list[Figure]] expand(list[list[Figure]] m) {
               list[Figure] r = [];
               for (Figure h<-g) {  
                   Figure q = h;
-                  if (cellsW.width>=0 && q.width<0) q.width =   cellsW.width*q.hshrink-q.at[0]-lw-q.padding[0]-q.padding[2]; 
-                  if (cellsH.height>=0 && q.height<0) q.height =   cellsH.height*q.vshrink-q.at[1]-lw-q.padding[1]-q.padding[3]; 
+                  if (cellsW.width>=0 && q.width<0) q.width =   cellsW.width*q.hshrink-lw-q.padding[0]-q.padding[2]; 
+                  if (cellsH.height>=0 && q.height<0) q.height =   cellsH.height*q.vshrink-lw-q.padding[1]-q.padding[3]; 
                   r += pushDim(q);  
                   }
               z+=[r];
@@ -642,9 +679,6 @@ list[list[Figure]] expand(list[list[Figure]] m) {
     }
 */
 
-void translate(tuple[num , num] at, void () g) {
-    salix::SVG::svg(salix::SVG::x("<at[0]>"), salix::SVG::y("<at[1]>"), g);
-    }
      
 void eval(emptyFigure()) {;}
 
@@ -652,14 +686,7 @@ void eval(Figure f:root()) {setPrecision(4); svg(svgSize(f)+[() {eval(f.fig);}])
 
 void eval(Figure f:overlay()) {svg(svgSize(f)+[(){for (g<-f.figs) {svg(svgSize(g)+[() {eval(g);}]);}}]);}
 
-void eval(Figure f:box()) {translate(f.at, (){\rect(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();});}
-
-void eval(Figure f:shapes::Figure::rotate(num angle, Figure g)) {
-        salix::SVG::g(fromFigureAttributesToSalix(f)+[(){
-            salix::SVG::circle(fromFigureAttributesToSalix(f));
-           if (emptyFigure()!:=g) innerFig(f, g)();
-           }]);
-       }
+void eval(Figure f:box()) {\rect(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 
 void eval(Figure f:shapes::Figure::circle()) {salix::SVG::circle(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 
@@ -739,15 +766,12 @@ void eval(Figure f:path(list[str] _)) {
                               () {                                                                     
                                  eval(d.fig);
                                  });                    
-                         }); 
-                   salix::SVG::g(salix::SVG::transform("translate(<f.at[0]>,<f.at[1]>)"),     // Disadvantage of API
-                                 (){  
+                         });               
                    salix::SVG::svg(salix::SVG::viewBox(getViewBox(f)), (){
                               salix::SVG::g(salix::SVG::transform(f.transform),
                           (){                        
                              salix::SVG::path(fromFigureAttributesToSalix(f, r));
                             });
-                          });
                        }); 
                    }
                    
@@ -756,7 +780,7 @@ void eval(Figure f:path(list[str] _)) {
                    num lw = f.lineWidth/cos(PI()/f.n); 
                    if (lw<0) lw = 0;
                    if (f.r<0) f.r = f.width/2;
-                   salix::SVG::g(salix::SVG::transform(t_.t(lw/2,lw/2)+"scale(<f.r>,<f.r>) "+t_.t(shift, shift)+t_.r(f.angle, 0, 0)),
+                   salix::SVG::g(salix::SVG::transform(t_.t(lw/2,lw/2)+"scale(<toP(f.r)>,<toP(f.r)>) "+t_.t(shift, shift)+t_.r(f.angle, 0, 0)),
                           (){                        
                             list[str] pth = [p_.M(-1, 0)];
                             pth += [p_.L(-cos(phi), sin(phi))|num phi<-[2*PI()/f.n, 4*PI()/f.n..2*PI()]];
@@ -803,9 +827,17 @@ void eval(Figure f:path(list[str] _)) {
                            }
                         });
                   }
+                  
+void eval(Figure f:shapes::Figure::rotate(num angle, Figure g)) {
+        salix::SVG::g(fromFigureAttributesToSalix(f)+[(){
+            salix::SVG::circle(fromFigureAttributesToSalix(f));
+           if (emptyFigure()!:=g) innerFig(f, g)();
+           }]);
+       }
 
-void eval(Figure f:atXY(num x, num y, Figure g)) {
-                   g.at = <x, y>;
-                   eval(g);
-                   }
+void eval(Figure f:at(num x, num y, Figure g)) {
+           salix::SVG::g(fromFigureAttributesToSalix(f)+[(){
+                   if (emptyFigure()!:=g) eval(g);
+           }]);
+         }
      

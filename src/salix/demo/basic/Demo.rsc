@@ -34,7 +34,7 @@ Model init() = startModel;
 
      
 public Figure newBox(Model m, str lc, Figure el) {
-      return atXY(10, 10, box(align = centerMid, lineColor= lc, 
+      return at(10, 10, box(align = centerMid, lineColor= lc, 
              fillColor = "none", fig = el, lineWidth = 8  
              , shrink=m[0].shrink, grow=m[0].grow
              ));
@@ -42,28 +42,35 @@ public Figure newBox(Model m, str lc, Figure el) {
 public Figure boxes(Model m) { 
          list[str] colors = ["green",  "red", "blue", "grey", "magenta", "brown"];
          return hcat(fillColor="none", borderWidth = 0, hgap = 0, figs = [
-           (
-           atXY(10, 10, box(// grow=m[0].grow, 
-             lineColor="grey", fillColor = "yellow", lineOpacity=1.0, size=<30, 40>))
-           |newBox(m, e, 
-          it)| e<-colors)
+          (
+           at(10, 10, 
+           box(grow=m[0].grow, 
+             lineColor="grey", fillColor = "yellow", lineWidth = 8, lineOpacity=1.0, size=<30, 40>)
+           )
+            |newBox(m, e, 
+            it)| e<-colors)
           ,
-          box(size=<300, 300>, fig=(atXY(10, 10, box(shrink = m[0].shrink, align = centerMid, lineColor="grey", lineWidth=1, fillColor = "antiquewhite", lineOpacity=1.0))
+          box(size=<300, 300>,  fig=(at(10, 10,  box(shrink = m[0].shrink, align = centerMid, lineColor="grey", lineWidth=1
+                , fillColor = "antiquewhite", lineOpacity=1.0))
           |newBox(m, e, it)| e<-colors))
             ])
          ;
           }
 
 public Figure newEllipse(Model m, str lc, Figure el) {
-      return atXY(0, 0, ellipse(lineColor= lc, lineWidth = 4 
+      return 
+      //  at(0, 0,
+        ellipse(lineColor= lc, lineWidth = 8 
            , shrink=m[1].shrink, grow=m[1].grow
            , fillColor = "white", padding=<0,0,0,0>, 
-      fig = el));
+      fig = el
+      //)
+      );
       }
 public Figure ellipses(Model m) {
       list[str] colors = ["red","blue" ,"grey","magenta", "brown", "green"];
       return hcat(padding=<0, 0, 0, 0>, fillColor="none",  hgap = 6,  figs = [
-      (idEllipse(34, 24) |newEllipse(m, e,  it)| e<-colors)
+     (idEllipse(34, 24) |newEllipse(m, e,  it)| e<-colors)
       ,
       box(size=<250, 150>, fig=(idEllipse(-1, -1) |newEllipse(m, e, it)| e<-colors))
       ]);
@@ -71,10 +78,14 @@ public Figure ellipses(Model m) {
       }
       
 public Figure newNgon(Model m, str lc, Figure el) {
-      return atXY(0, 0, ngon(n = 5,  grow=1.0, align = centerMid, lineColor= lc 
+      return 
+      // at(0, 0, 
+             ngon(n = 5,  grow=1.0, align = centerMid, lineColor= lc 
           ,shrink=m[2].shrink, grow=m[2].grow
           ,lineWidth = 8, fillColor = "white", padding=<0,0,0,0>,
-      fig = el));
+      fig = el)
+    // )
+      ;
       }
 
 public Figure ngons(Model m) {
@@ -103,10 +114,10 @@ public Figure vennDiagram() = overlay(
 
 public list[list[Figure]] figures(Model m, bool tooltip) = 
 [
-    [boxes(m)]
-    , [ellipses(m)]
-    , [ngons(m)]
-     , [vennDiagram()]
+   [boxes(m)],
+     [ellipses(m)]
+   , [ngons(m)]
+    , [vennDiagram()]
      ]; 
      
       

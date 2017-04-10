@@ -13,13 +13,6 @@ import util::Math;
 import Prelude;
 import lang::json::IO;
 
-/* Properties */
-
-// Position for absolute placement of figure in parent
-
-alias Position = tuple[num x, num y];
-
-
 alias Rescale = tuple[tuple[num, num], tuple[num, num]];
 
 
@@ -179,7 +172,6 @@ public data Figure(
 		tuple[num left, num top, num right, num bottom] padding = <0, 0, 0, 0>, // left, top, right, bottom 
 		num width = -1,
 		num height = -1,
-		Position at = <0, 0>, 
 		Alignment align = <0.5, 0.5>,
 		Alignment cellAlign = <-1, -1>, 
 		num bigger = 1.0,
@@ -279,10 +271,7 @@ public data Figure(
 
 // Figure transformations
 
-   | atXY(int x, int y, Figure fig)	
-   | atXY(tuple[int x, int y] xy, Figure fig)			// Move to Alignment relative to origin of enclosing Figure
-   | atX(int x, Figure fig)				// TODO: how to handle negative values?
-   | atY(int y, Figure fig)
+   | at(num x, num y, Figure fig)	
    
    | rotate(num angle, Figure fig, num cx = -1, num cy = -1, num r=-1) // in Radians
    
