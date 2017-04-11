@@ -79,12 +79,12 @@ public Figure ellipses(Model m) {
       
 public Figure newNgon(Model m, str lc, Figure el) {
       return 
-      // at(0, 0, 
+      at(0, 0, 
              ngon(n = 5,  grow=1.0, align = centerMid, lineColor= lc 
           ,shrink=m[2].shrink, grow=m[2].grow
           ,lineWidth = 8, fillColor = "white", padding=<0,0,0,0>,
       fig = el)
-    // )
+    )
       ;
       }
 

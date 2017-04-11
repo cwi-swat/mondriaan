@@ -88,7 +88,7 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::rotate(num angle, Figu
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::at(num x, num y, Figure g)) {
    list[value] r =[];
    r+= salix::SVG::transform("translate(<toP(x)>, <toP(y)>)");         
-   r+=fromCommonFigureAttributesToSalix(f);
+  //  r+=fromCommonFigureAttributesToSalix(f);
    return r; 
    }
    
@@ -242,8 +242,10 @@ Figure getTransformedFigure(Figure f) {
    
 void() innerFig(Figure outer, Figure inner) {
     return (){
-       num lwo = ngon():=getTransformedFigure(outer)? outer.lineWidth/cos(PI()/outer.n): getLineWidth(outer);
-       num  lwi = ngon():=getTransformedFigure(inner)? inner.lineWidth/cos(PI()/inner.n): getLineWidth(inner);
+       Figure inner0 = getTransformedFigure(inner);
+        Figure outer0 = getTransformedFigure(outer);
+       num lwo = ngon():=outer0? outer0.lineWidth/cos(PI()/outer0.n): getLineWidth(outer0);
+       num  lwi = ngon():=inner0? inner0.lineWidth/cos(PI()/inner0.n): getLineWidth(inner0);
        if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
        num widtho = outer.width; num heighto = outer.height;
        num widthi = inner.width; num heighti = inner.height;    
@@ -405,9 +407,10 @@ default Figure pullDim(Figure f) {
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
         f.fig = pullDim(f.fig);
         Figure g = f.fig;
+        Figure g0 = getTransformedFigure(g);
         num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
         if (lwo<0) lwo = 0; 
-        num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
+        num lwi = (ngon():=g0)? g0.lineWidth/cos(PI()/g0.n): getLineWidth(g0);
         if (lwi<0) lwi = 0;
         if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ lwo;
         if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi + lwo;
@@ -614,9 +617,10 @@ list[list[Figure]] expand(list[list[Figure]] m) {
        }
      if (hasFigField(f) && emptyFigure()!:=f.fig) {
            Figure g = f.fig; 
+           Figure g0 = getTransformedFigure(g);
            num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
            if (lwo<0) lwo = 0; 
-           num  lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
+           num  lwi = (ngon():=g0)? g0.lineWidth/cos(PI()/g0.n): getLineWidth(g0);
            if (lwi<0) lwi = 0;
            if (g.width<0 && f.width>=0) g.width = g.hshrink*(f.width-lwo) - lwi;
            if (g.height<0 && f.height>=0) g.height = g.vshrink*(f.height-lwo) -lwi;
