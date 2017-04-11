@@ -9,9 +9,6 @@ import salix::lib::Dagre;
 import util::Reflective;
 import Prelude;
 
-data Figure = root(Figure fig= emptyFigure());
-
-data Event = onclick(Msg m);
 
 value vAlign(Alignment align) {
        if (align == bottomLeft || align == bottomMid || align == bottomRight) return salix::HTML::valign("bottom");
@@ -50,7 +47,9 @@ str toP(num e) {
         }
         
  num getLineWidth(Figure f) {
-      num lw = isGrid(f)?f.borderWidth:f.lineWidth;
+      f = getTransformedFigure(f);
+      num lw = (ngon():=f)? f.lineWidth/cos(PI()/f.n): 
+           (isGrid(f)?f.borderWidth:f.lineWidth);
       return (lw>=0?lw:0);
       }
        
@@ -88,7 +87,6 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::rotate(num angle, Figu
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::at(num x, num y, Figure g)) {
    list[value] r =[];
    r+= salix::SVG::transform("translate(<toP(x)>, <toP(y)>)");         
-  //  r+=fromCommonFigureAttributesToSalix(f);
    return r; 
    }
    
@@ -184,7 +182,7 @@ list[value] svgSize(Figure f) {
    }
    
 list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
-    list[tuple[str, str]] styles=[]; 
+    list[tuple[str, str]] styles = (svg?[]:f.style); 
     if (!svg) styles+= <"overflow", f.overflow>; 
     int fontSize = (f.fontSize>=0)?f.fontSize:12;
     styles+=<"font-size", "<fontSize>pt">;
@@ -221,7 +219,7 @@ list[value] fromTableModelToProperties(Figure f) {
    
 list[value] fromTdModelToProperties(Figure f, Figure g) {
     list[tuple[str, str]] styles = f.style+
-    [<"padding", "<round(g.padding[1])>px <round(g.padding[2])>px <round(g.padding[3])>px <round(g.padding[0])>px">];
+    [<"padding", "<round(g.padding_top)>px <round(g.padding_right)>px <round(g.padding_bottom)>px <round(g.padding_left)>px">];
     if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
     if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
     if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
@@ -242,11 +240,8 @@ Figure getTransformedFigure(Figure f) {
    
 void() innerFig(Figure outer, Figure inner) {
     return (){
-       Figure inner0 = getTransformedFigure(inner);
-        Figure outer0 = getTransformedFigure(outer);
-       num lwo = ngon():=outer0? outer0.lineWidth/cos(PI()/outer0.n): getLineWidth(outer0);
-       num  lwi = ngon():=inner0? inner0.lineWidth/cos(PI()/inner0.n): getLineWidth(inner0);
-       if (lwo<0) lwo = 0; if (lwi<0) lwi = 0;
+       num lwo = getLineWidth(outer);
+       num lwi = getLineWidth(inner);
        num widtho = outer.width; num heighto = outer.height;
        num widthi = inner.width; num heighti = inner.height;    
        list[value] svgArgs = [];
@@ -339,13 +334,17 @@ Figure pullDim(Figure f:emptyFigure()) {
       f.height = 0;
       return f;
       }
+      
+Figure pullDim(Figure f:salix(num width, num height, void() z)) {
+      return salix(width, height, z, width = width, height = height) ;
+      }
 
 Figure pullDim(Figure f:overlay()) {
     f = adjustParameters(f);
     if (isEmpty(f.figs)) return f;
     f.figs = [pullDim(h)|Figure h<-f.figs];
-    num maxWidth = max([h.width+(getLineWidth(h))|h<-f.figs]);
-    num maxHeight = max([h.height+(getLineWidth(h))|h<-f.figs]);
+    num maxWidth = max([h.width>=0?h.width+(getLineWidth(h)):-1|h<-f.figs]);
+    num maxHeight = max([h.height>=0?h.height+(getLineWidth(h)):-1|h<-f.figs]);
     if (f.width<0) f.width = maxWidth;
     if (f.height<0) f.height = maxHeight;
     return f;
@@ -375,10 +374,8 @@ Figure pullDim(Figure f:at(num x, num y, Figure g)) {
 Figure pullDim(Figure f:rotate(num angle, Figure g)) {
     f = adjustParameters(f);
     g = pullDim(g);
-    num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
-    if (lwo<0) lwo = 0; 
-    num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
-    if (lwi<0) lwi = 0;
+    num lwo = getLineWidth(f);
+    num lwi = getLineWidth(g);
     Figure r = rotate(angle, g);
     if (f.width<0 && g.width>=0) r.width = f.hgrow*g.width + lwi+ lwo;
     if (f.height<0 && g.height>=0) r.height = f.vgrow*g.height + lwi +lwo;
@@ -407,13 +404,12 @@ default Figure pullDim(Figure f) {
      if (hasFigField(f) && emptyFigure()!:=f.fig) {    
         f.fig = pullDim(f.fig);
         Figure g = f.fig;
-        Figure g0 = getTransformedFigure(g);
-        num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
-        if (lwo<0) lwo = 0; 
-        num lwi = (ngon():=g0)? g0.lineWidth/cos(PI()/g0.n): getLineWidth(g0);
-        if (lwi<0) lwi = 0;
-        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ lwo;
-        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi + lwo;
+        num lwo = getLineWidth(f);
+        num lwi = getLineWidth(g);
+        num paddingX= g.padding_left+g.padding_right;
+        num paddingY= g.padding_top+g.padding_bottom;
+        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ lwo+paddingX;
+        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi + lwo+paddingY;
         if (f.width>0 && f.height>0 && (shapes::Figure::circle():=f)) {
             num width = f.width; num height = f.height;
             f.width = diag(width, height);
@@ -437,10 +433,10 @@ default Figure pullDim(Figure f) {
             for (Figure h<-g)  {
                   Figure v = pullDim(h);
                   num lwi = getLineWidth(v);
-                  num colWidth = v.width>=0?(v.width+lwi+v.padding[0]+v.padding[2]):-1;
+                  num colWidth = v.width>=0?(v.width+lwi+v.padding_left+v.padding_right):-1;
                   if (maxColWidth[i]<colWidth) maxColWidth[i] = colWidth;
                   if (h1>=0) {
-                      if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding[1]+v.padding[3]]);else h1=-1;
+                      if (v.height>=0) h1 = max([h1, v.height+lwi+v.padding_top+v.padding_bottom]);else h1=-1;
                       }
                   r += [v]; 
                   i += 1;     
@@ -547,12 +543,14 @@ list[list[Figure]] expand(list[list[Figure]] m) {
      }
      
  Figure pushDim(Figure f:overlay()) {
+    f = adjustParameters(f);
     if (isEmpty(f.figs)) return f;
     list[Figure] z =[];
     if (f.width>=0)
     for (Figure h<-f.figs) {
-       if (f.width>=0 && h.width<0) h.width = f.width;
-       if (f.height>=0 && h.height<0) h.height = f.height;
+       num lw = getLineWidth(h);
+       if (f.width>=0 && h.width<0) h.width = f.width-lw;
+       if (f.height>=0 && h.height<0) h.height = f.height-lw;
        z+=[h];
        }
     f.figs = [pushDim(h)|h<-z];
@@ -560,10 +558,7 @@ list[list[Figure]] expand(list[list[Figure]] m) {
     }
     
  Figure pushDim(Figure f:shapes::Figure::graph()) {
-      if (f.size != <0, 0>) {
-          if (f.width<0) f.width = f.size[0];
-          if (f.height<0) f.height = f.size[1];
-       }
+      f = adjustParameters(f);
       list[tuple[str, Figure]] r = [];
       for (tuple[str id, Figure fig] d<-f.nodes) {
             r+=[<d.id, pushDim(d.fig)>];
@@ -573,10 +568,8 @@ list[list[Figure]] expand(list[list[Figure]] m) {
       }
       
  Figure pushDim(Figure f:rotate(num angle, Figure g)) {
-    num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
-    if (lwo<0) lwo = 0; 
-    num lwi = (ngon():=g)? g.lineWidth/cos(PI()/g.n): getLineWidth(g);
-    if (lwi<0) lwi = 0;
+    num lwo = getLineWidth(f);
+    num lwi = getLineWidth(g);
     num width = f.width; num height = f.height;
     if (g.width<0 && width>=0) g.width = g.hshrink*min(width, height)-lwi-lwo;
     if (g.height<0 && height>=0) g.height = g.vshrink*min(width, height)-lwi-lwo; 
@@ -611,19 +604,14 @@ list[list[Figure]] expand(list[list[Figure]] m) {
     }
      
  default Figure pushDim(Figure f) {
-     if (f.size != <0, 0>) {
-       if (f.width<0) f.width = f.size[0];
-       if (f.height<0) f.height = f.size[1];
-       }
      if (hasFigField(f) && emptyFigure()!:=f.fig) {
-           Figure g = f.fig; 
-           Figure g0 = getTransformedFigure(g);
-           num lwo = (ngon():=f)? f.lineWidth/cos(PI()/f.n): getLineWidth(f);
-           if (lwo<0) lwo = 0; 
-           num  lwi = (ngon():=g0)? g0.lineWidth/cos(PI()/g0.n): getLineWidth(g0);
-           if (lwi<0) lwi = 0;
-           if (g.width<0 && f.width>=0) g.width = g.hshrink*(f.width-lwo) - lwi;
-           if (g.height<0 && f.height>=0) g.height = g.vshrink*(f.height-lwo) -lwi;
+           Figure g = adjustParameters(f.fig); 
+           num lwo = getLineWidth(f);
+           num lwi = getLineWidth(g);
+           num paddingX= g.padding_left+g.padding_right;
+           num paddingY= g.padding_top+g.padding_bottom;
+           if (g.width<0 && f.width>=0) g.width = g.hshrink*(f.width-lwo) - lwi-paddingX;
+           if (g.height<0 && f.height>=0) g.height = g.vshrink*(f.height-lwo) -lwi-paddingY;
            f.fig = pushDim(g);
      }
      if (grid():=f || vcat():=f || hcat():=f) {
@@ -638,9 +626,9 @@ list[list[Figure]] expand(list[list[Figure]] m) {
           for (list[Figure] g<-cellsW.figs) {
               list[Figure] r = [];
               for (Figure h<-g) {  
-                  Figure q = h;
-                  if (cellsW.width>=0 && q.width<0) q.width =   cellsW.width*q.hshrink-lw-q.padding[0]-q.padding[2]; 
-                  if (cellsH.height>=0 && q.height<0) q.height =   cellsH.height*q.vshrink-lw-q.padding[1]-q.padding[3]; 
+                  Figure q = adjustParameters(h);
+                  if (cellsW.width>=0 && q.width<0) q.width =   cellsW.width*q.hshrink-lw-q.padding_left-q.padding_right; 
+                  if (cellsH.height>=0 && q.height<0) q.height =   cellsH.height*q.vshrink-lw-q.padding_top-q.padding_bottom; 
                   r += pushDim(q);  
                   }
               z+=[r];
@@ -673,20 +661,10 @@ list[list[Figure]] expand(list[list[Figure]] m) {
      root = solveDim(root);
      eval(root);
      }
-/*    
- str adjustText(str v, bool html) {
-    if (isEmpty(v)) return "";
-    s = replaceAll(v,"\\", "\\\\");
-    s = replaceAll(s,"\n", "\\\n");
-    s = "\"<replaceAll(s,"\"", "\\\"")>\""; 
-    return s;
-    }
-*/
-
-     
+    
 void eval(emptyFigure()) {;}
 
-void eval(Figure f:root()) {setPrecision(4); svg(svgSize(f)+[() {eval(f.fig);}]);}
+void eval(Figure f:root()) {svg(svgSize(f)+[() {eval(f.fig);}]);}
 
 void eval(Figure f:overlay()) {svg(svgSize(f)+[(){for (g<-f.figs) {svg(svgSize(g)+[() {eval(g);}]);}}]);}
 
@@ -704,7 +682,7 @@ void eval(Figure f:htmlText(value v)) {
      if (height>=0) foreignObjectArgs+= salix::SVG::height("<toP(height-lw)>");
      foreignObjectArgs+= salix::SVG::x("<toP(lw)>"); foreignObjectArgs+= salix::SVG::y("<toP(lw)>");
      list[tuple[str, str]] styles = [<"padding", 
-                                      "<f.padding[1]> <f.padding[2]> <f.padding[3]> <f.padding[0]>">];
+                                      "<f.padding_top> <f.padding_right> <f.padding_bottom> <f.padding_left>">];
      if (f.borderWidth>=0) styles += <"border-width", "<f.borderWidth>px">;
      if (!isEmpty(f.borderColor)) styles+= <"border-color", "<f.borderColor>">;
      if (!isEmpty(f.borderStyle)) styles+= <"border-style", "<f.borderStyle>">;
@@ -844,4 +822,14 @@ void eval(Figure f:at(num x, num y, Figure g)) {
                    if (emptyFigure()!:=g) eval(g);
            }]);
          }
+         
+void eval(Figure f:salix(_, _, void() g) ){
+       num lw = getLineWidth(f);
+       num width = f.width; num height = f.height;   
+       list[value] foreignObjectArgs = [];
+       if (width>=0) foreignObjectArgs+= salix::SVG::width("<toP(width-lw)>");
+       if (height>=0) foreignObjectArgs+= salix::SVG::height("<toP(height-lw)>"); 
+       foreignObjectArgs+= salix::SVG::x("<lw>"); foreignObjectArgs+= salix::SVG::y("<lw>");
+       foreignObject(foreignObjectArgs+[(){g();}]);
+    } 
      

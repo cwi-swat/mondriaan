@@ -1,4 +1,5 @@
-module salix::demo::basic::Template
+module salix::demo::basic::Salix
+
 
 import util::Math;
 import shapes::Figure;
@@ -31,7 +32,8 @@ data Msg
 Model init() = startModel;
 
 Figure testFigure(Model m) {
-     "Here";
+     return box(fillColor="antiquewhite", grow = 1.5, fig = salix(300, 300, (){div(() {h2("Hallo World");
+           h3(style([<"color", "blue">]), "push button");});}));
      }
      
 void myView(Model m) {

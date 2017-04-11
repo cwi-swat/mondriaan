@@ -1,4 +1,4 @@
-module salix::demo::basic::Template
+module salix::demo::basic::Padding
 
 import util::Math;
 import shapes::Figure;
@@ -10,7 +10,7 @@ import salix::Slider;
 
 alias Model = list[tuple[num width, num height]];
 
-num startWidth = 800, startHeight = 800;
+num startWidth = 120, startHeight = 100;
 
 
 Model startModel = [<startWidth, startHeight>];
@@ -22,8 +22,8 @@ data Msg
    
  Model update(Msg msg, Model m) {
     switch (msg) {
-       case resizeX(_, real x): m[0].width = x;
-       case resizeY(_, real y): m[0].height = y;
+       case resizeX(int id, real x): m[id].width = x;
+       case resizeY(int id, real y): m[id].height = y;
        }
      return m;
 }
@@ -31,14 +31,16 @@ data Msg
 Model init() = startModel;
 
 Figure testFigure(Model m) {
-     "Here";
+     return box(fillColor="antiquewhite"
+        , fig = box(fillColor="powderblue", padding_left=m[0].width*0.1, padding_right=m[0].width*0.1
+            , padding_top= m[0].height*0.1, padding_bottom=m[0].height*0.1));
      }
      
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
         fig(testFigure(m), width = m[0].width, height = m[0].height);
-        num lo = 200, hi = 1000;
+        num lo = 50, hi = 500;
         list[list[list[SliderBar]]] sliderBars = [[
                              [
                               < resizeX, 0, "resize X:", lo, hi, 50, startWidth,"<lo>", "<hi>"> 

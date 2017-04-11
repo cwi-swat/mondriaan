@@ -1,12 +1,13 @@
-module salix::demo::basic::Template
-
+module salix::demo::basic::Bundle
 import util::Math;
 import shapes::Figure;
 import salix::HTML;
 import salix::Core;
 import salix::App;
 import salix::LayoutFigure;
+import Prelude;
 import salix::Slider;
+
 
 alias Model = list[tuple[num width, num height]];
 
@@ -31,7 +32,7 @@ data Msg
 Model init() = startModel;
 
 Figure testFigure(Model m) {
-     "Here";
+     return bundle();
      }
      
 void myView(Model m) {
@@ -64,4 +65,31 @@ public void main() {
      c.stop();
      c.serve();
      }
-     
+
+/*--------------------------------------------------------------------------------- */
+
+
+Figure newCircle(str lc, Alignment align, Figure el) {
+      return shapes::Figure::ellipse(lineColor= lc, lineWidth = 4, 
+           fillColor = "none", align = align, 
+      fig = el, shrink=0.9);
+      }
+
+Figure idCircleShrink(num shrink) = shapes::Figure::ellipse(shrink= shrink, lineWidth = 4, lineColor = pickColor()); 
+
+Figure bundle(int n, Alignment align) { resetColor(); return
+      (idCircleShrink(0.9) |newCircle(e, align, 
+      it)| e<-[pickColor()|int i<-[0..n]])
+      ;}
+      
+Figure bundle() = overlay(figs=[
+               bundle(4, centerLeft), 
+               bundle(4, centerRight),
+               // bundle(4, centerMid),  
+               bundle(4, topMid), 
+               bundle(4, bottomMid)
+              ])
+               ;
+      
+
+

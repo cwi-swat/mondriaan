@@ -13,8 +13,6 @@ import util::Math;
 import Prelude;
 import lang::json::IO;
 
-alias Rescale = tuple[tuple[num, num], tuple[num, num]];
-
 
 alias ViewBox = tuple[num x, num y, num width, num height];
 
@@ -44,27 +42,12 @@ data Orientation =
 	| 	topDown()
 	|	downTop();
 
-// Events and bindings for input elements
-alias StrCallBack = void(str,str,str);
-alias RealCallBack = void(str,str,real);
-alias IntCallBack = void(str,str,int);
-
 // alias InputType = tuple[str lab, str f];
 
+data Msg;
 
-data Event
-	= on(StrCallBack strCallBack)
-	| on(RealCallBack realCallBack)
-	| on(IntCallBack intCallBack)
-	| on(str eventName, StrCallBack strCallBack)
-	| on(str eventName, RealCallBack realCallBack) 
-	| on(str eventName, IntCallBack intCallBack)
-	| on(list[str] eventList, StrCallBack strCallBack)
-	| on(list[str] eventList, RealCallBack realCallBack)
-	| on(list[str] eventList, IntCallBack intCallBack)
-	| noEvent()
-	;
-
+data Event = noEvent()
+             |onclick(Msg m);
 
 alias XYData 			= lrel[num x, num y];
 
@@ -78,7 +61,6 @@ alias XYLabeledData     = lrel[num xx, num yy, str label];
 
 alias GoogleData     = list[list[value]];	
 
-data DDD = ddd(str name="", int size = 0, list[DDD] children = [], int width =10, int height = 10);
 
 //data Margin = margin(int left = 0, int right = 0, int top = 0, int bottom = 0);
 
@@ -113,54 +95,7 @@ alias FormEntry = tuple[str id, value startValue, str fieldName, list[Constraint
 
 public alias Figures = list[Figure];
 
-public num nullFunction(list[num] x) { return 0;}
 
-void nullCallback(str x, str y, str z) {return;}
-
-public data Attr (
-    int width = -1,
-    int height =  -1,
-    int r = -1,
-    num bigger = 1.0,
-    str d = "",
-    bool disabled = false, 
-    bool shapeCurved = false 
-    ) = attr();
-    
-public data Property (
-     value \value = ""
-    ) = property();
-    
-public data Timer (
-     int delay = -1,
-     str command = ""
-     // ,str mark = ""
-    ) = timer();
-    
-    
-public data Style (	
-    bool svg = false,
-    str visibility = "", 
-    int width = -1,
-    int height = -1,	
-    int lineWidth = -1,			
-    str lineColor = "", 
-    str fillColor= "", 
-    num fillOpacity = -1.0, 
-    num lineOpacity= -1.0   
-    ) = style();
-    
-    
-public data Text (		
-    str plain = "",
-    str html = ""  
-    ) = text();
-    
-    
-public alias Prop =
-    tuple[Attr attr, Style style,  Property property, Text text, Timer timer];
-    
- 
 // public str strEmpty() {return "";}
        
 public data Figure(
@@ -169,23 +104,22 @@ public data Figure(
         str visibility = "",  // hidden | visible
 		// Dimensions and Alignmenting
 		tuple[num,num] size = <0,0>,
-		tuple[num left, num top, num right, num bottom] padding = <0, 0, 0, 0>, // left, top, right, bottom 
+		num padding_left = 0,
+		num padding_right = 0,
+		num padding_top = 0,
+		num padding_bottom = 0,	
 		num width = -1,
 		num height = -1,
 		Alignment align = <0.5, 0.5>,
-		Alignment cellAlign = <-1, -1>, 
-		num bigger = 1.0,
+		Alignment cellAlign = <-1, -1>,
 		num shrink = 1, 
 		num hshrink = -1, 
 		num vshrink = -1, 
 		num grow = 1, 
 		num hgrow = -1, 
 		num vgrow = -1, 
-		bool resizable = true,
 		num hgap = 0,
 		num vgap = 0,
-        bool sizeFromParent = false,
-        bool print = true, 
     	// Line properties
 		num lineWidth = -1,			
 		str lineColor = "", 		
@@ -222,19 +156,17 @@ public data Figure(
 		
 		// Tooltip
 		value tooltip = "",
-		list[tuple[str, str]] style=[],
+		lrel[str, str] style=[],
 		
 		// Panel
 		Figure panel = emptyFigure()
 	) =
 	
 	emptyFigure()
-  
-
-// atomic primitivesreturn [[z] +[*((c[z]?)?c[z]:"null")|c<-m]|z<-x];
-	
-   | htmlText(value text, str overflow = "hidden")		    			// text label html
-   | svgText(value text, str overflow = "hidden")		    			// text label html
+   | root(Figure fig= emptyFigure())
+   | salix(num width, num height, void() f)	
+   | htmlText(value text, str overflow = "hidden") // text label html
+   | svgText(value text, str overflow = "hidden") // text label html
 // | markdown(value text)					// text with markdown markup (TODO: make flavor of text?)
 // | math(value text)						// text with latex markup
    
@@ -276,9 +208,9 @@ public data Figure(
    | rotate(num angle, Figure fig, num cx = -1, num cy = -1, num r=-1) // in Radians
    
 // Input elements
-   | buttonInput(str txt, bool disabled=false,  value \value = "")
-   | checkboxInput(list[str] choices = ["0"], value \value = (), value labels=())
-   | choiceInput(list[str] choices = ["0"], value \value = "")
+   //| buttonInput(str txt, bool disabled=false,  value \value = "")
+   //| checkboxInput(list[str] choices = ["0"], value \value = (), value labels=())
+   // | choiceInput(list[str] choices = ["0"], value \value = "")
    // | colorInput()
    // date
    // datetime
@@ -290,9 +222,9 @@ public data Figure(
    // url
    
   //  | numInput()
-   | rangeInput(num low=0, num high=100, num step=1, value \value = 50.0)
-   | strInput(int nchars=20, value \value="", bool keydown= true) 
-   | choice(int selection = 0, Figures figs = [])
+  // | rangeInput(num low=0, num high=100, num step=1, value \value = 50.0)
+   //| strInput(int nchars=20, value \value="", bool keydown= true) 
+   // | choice(int selection = 0, Figures figs = [])
   
 /*
    | _computeFigure(bool() recomp,Figure () computeFig, FProperties props)
@@ -317,13 +249,14 @@ public data Figure(
 	       ,bool manhattan=false
 // For memory management
 	       , int refinement=5, int rasterHeight=150)
-	       
+/*      
    |d3Pack(DDD d = ddd(), str fillNode="rgb(31, 119, 180)", str fillLeaf = "ff7f0e", num fillOpacityNode=0.25, num fillOpacityLeaf=1.0,
           int diameter = 960, bool inTooltip = false)
    |d3Treemap(DDD d = ddd(), bool inTooltip = false)
    |d3Tree(Figure root)
    |d3Tree(DDD d = ddd())
    |pack(Figures fs)
+*/
    ;
    
 data GraphOptions = graphOptions(
@@ -607,18 +540,6 @@ public str adt2json(node t) {
    return toJSON(adt2map(t), true);
    }
       
-public Figure plot(Points xy, Rescale x, Rescale y, bool shapeCurved = true
-      ,str lineColor = "", int lineWidth = -1, str fillColor = ""
-      , int width = -1, int height = -1
-      , bool fillEvenOdd = true
-      ) {
-      Vertices v = [move(head(xy)[0], head(xy)[1])]
-                  +[line(d[0], d[1])|d<-tail(xy)];
-      return shape(v, scaleX = x, scaleY = y, shapeCurved = shapeCurved,
-      lineColor = lineColor, lineWidth = lineWidth, fillColor = fillColor,
-      width = width, height = height, fillEvenOdd = fillEvenOdd);
-      }
-
 public Figure frame(Figure f, num shrink=1.0, num grow=1.0, str id = "", str visibility="visible", int borderWidth = -1, 
       str borderStyle = "") {
       return box(lineWidth=0, fillColor="none", fig = f, shrink= shrink, grow = grow, id = false?"<newId()>_frame":id
@@ -840,42 +761,6 @@ map[str, list[list[str]]] _compact(list[list[str]] xs) {
          r[head(x)] = q;
          }
     return r;
-    }
-  
-list[DDD] compact(list[list[str]] xs, map[loc, int] m, loc path) {
-    map[str, list[list[str]]] q = _compact(xs);
-    list[DDD] r = [];
-    for (str x<-q) {
-         if (isEmpty(head(q[x]))) r = r + ddd(name=substring(x, 0, findLast(x, ".")), size=m[path+x]); 
-         else r = r + ddd(name=x, children=compact(q[x], m, path +x));
-         }
-    return r;
-    }
-  
-public DDD fileMap(loc source, str suffix) {
-    list[loc] todo = [source];
-    list[loc] done = [];
-    while (!isEmpty(todo)) {
-        <elem,todo> = takeOneFrom(todo);
-        for (e <- listEntries(elem)) {
-           loc f = elem +e;
-		   if (isDirectory(f)) {
-		   	todo += f;
-		   }
-		   else {
-		        if (endsWith(f.path, suffix))
-		        done += f;
-		   }
-	      }
-	    }
-        map[loc, int] m = (d:size(readFileLines(d))|d<-done);
-        list[list[str]] r = [];
-        for (d<-done) {
-            str p = d.path; 
-            r=r+[split("/", p)];
-            }
-        list[DDD] p = compact(r, m, source.parent);
-        return head(p);
     }
  
  public tuple[int, int](num, num) lattice(int width, int height, int nx, int ny) {

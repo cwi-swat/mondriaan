@@ -27,8 +27,6 @@ data Msg
 
 Model init() = startModel;
     
-
-    
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -62,14 +60,14 @@ public Figure newEllipse(Model m, str lc, Figure el) {
       //  at(0, 0,
         ellipse(lineColor= lc, lineWidth = 8 
            , shrink=m[1].shrink, grow=m[1].grow
-           , fillColor = "white", padding=<0,0,0,0>, 
+           , fillColor = "white",  
       fig = el
       //)
       );
       }
 public Figure ellipses(Model m) {
       list[str] colors = ["red","blue" ,"grey","magenta", "brown", "green"];
-      return hcat(padding=<0, 0, 0, 0>, fillColor="none",  hgap = 6,  figs = [
+      return hcat(fillColor="none",  hgap = 6,  figs = [
      (idEllipse(34, 24) |newEllipse(m, e,  it)| e<-colors)
       ,
       box(size=<250, 150>, fig=(idEllipse(-1, -1) |newEllipse(m, e, it)| e<-colors))
@@ -90,13 +88,12 @@ public Figure newNgon(Model m, str lc, Figure el) {
 
 public Figure ngons(Model m) {
           list[str] colors = ["antiquewhite", "yellow", "red","blue" ,"grey","magenta"];
-           return // pack([
+           return 
               hcat(hgap=6, lineWidth = 4, figs=[
              (idNgon(5, 20) |newNgon(m, e, it)| e<-colors)
              ,
             box(size=<200, 200>, fig= (idNgon(5, -1) |newNgon(m, e, it)| e<-colors))
            ])
-           // ], size=<500, 500>)
            ;}
            
 public Figure vennDiagram() = overlay(
