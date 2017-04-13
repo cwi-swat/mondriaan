@@ -292,7 +292,8 @@ void() tableRows(Figure f) {
 bool isGrid(Figure f) = hcat():=f || vcat():= f || grid():=f;
     
 num getGrowFactor(Figure f, Figure g) {
-    if ((shapes::Figure::ellipse():=f||shapes::Figure::ngon():=f)&&(box():=g || isGrid(g))) return sqrt(2);
+    if ((shapes::Figure::ellipse():=f|| shapes::Figure::ngon():=f)&&(box():=g || isGrid(g))) return sqrt(2);
+    if (shapes::Figure::circle():=f &&  (shapes::Figure::ngon():=g || shapes::Figure::ngon():=g)) return 1/sqrt(2);
     return 1;
     }
     
@@ -408,8 +409,8 @@ default Figure pullDim(Figure f) {
         num lwi = getLineWidth(g);
         num paddingX= g.padding_left+g.padding_right;
         num paddingY= g.padding_top+g.padding_bottom;
-        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*g.width + lwi+ lwo+paddingX;
-        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*g.height + lwi + lwo+paddingY;
+        if (f.width<0 && g.width>=0) f.width = f.hgrow*getGrowFactor(f, g)*(g.width + lwi+ lwo)+paddingX;
+        if (f.height<0 && g.height>=0) f.height = f.vgrow*getGrowFactor(f, g)*(g.height + lwi + lwo)+paddingY;
         if (f.width>0 && f.height>0 && (shapes::Figure::circle():=f)) {
             num width = f.width; num height = f.height;
             f.width = diag(width, height);

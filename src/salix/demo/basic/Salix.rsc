@@ -32,8 +32,8 @@ data Msg
 Model init() = startModel;
 
 Figure testFigure(Model m) {
-     return box(fillColor="antiquewhite", grow = 1.5, fig = salix(300, 300, (){div(() {h2("Hallo World");
-           h3(style([<"color", "blue">]), "push button");});}));
+     return box(fillColor="antiquewhite", grow = 1.5, fig = salix(300, 600, (){div(() {h2("Hallo World");
+           salix::HTML::button(style([<"color", "blue">]), "push button");});}));
      }
      
 void myView(Model m) {

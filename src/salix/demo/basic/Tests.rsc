@@ -51,12 +51,12 @@ Figure stack1(Figure f) = vcat(align=centerMid, vgap=4, figs=[box(grow=1.2, fig=
         ,vcat(width=200, height=70, figs= [box(shrink= 1.0, fillColor= "blue"), box(shrink= 0.5, fillColor= "yellow"), box(shrink=1.0, fillColor= "red")], align = bottomLeft)
         ,vcat(size=<200, 60>, figs=[htmlText("a",align=centerRight, fontSize=14, fontColor="blue"), htmlText("bb",align=centerRight,fontSize=14, fontColor="blue"),htmlText("ccc",align=centerRight,fontSize=14, fontColor="blue")])
         ,grid(width=200, height=70, figArray= [[box(shrink= 0.5, fillColor="blue")], [box(shrink=0.3, fillColor="yellow"), box(shrink=0.5, fillColor="red")]], align=bottomLeft)
-      //  ,grid(width=200, height=70, figArray= [[box(shrink= 0.5, fillColor="blue")], [box(shrink=0.3, fillColor="yellow"), box(shrink=0.5, fillColor="red")]], align=centerMid)
-       // ,graph(width=200, height=200, nodes=[<"a", box(fig=text("aap",fontSize=14, fontColor="blue"), grow=1.6, fillColor="beige")>
-       //                                  , <"b", box(fig=text("noot",fontSize=14, fontColor="blue"), grow=1.6, fillColor="beige")>]
-       //                             ,edges=[edge("a","b")])
+        ,grid(width=200, height=70, figArray= [[box(shrink= 0.5, fillColor="blue")], [box(shrink=0.3, fillColor="yellow"), box(shrink=0.5, fillColor="red")]], align=centerMid)
+        ,graph(width=200, height=200, nodes=[<"a", box(size=<60, 60>,fig=htmlText("aap", fontSize=14, fontColor="blue"), grow=1.6, fillColor="beige")>
+                                         , <"b", box(size=<60, 60>,fig=htmlText("noot", fontSize=14, fontColor="blue"), grow=1.6, fillColor="beige")>]
+                                    ,edges=[edge("a","b")])
         ] , stack1)
-        , resizable=true);
+        );
      } 
      
  void myView(Model m) {
