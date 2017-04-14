@@ -346,8 +346,8 @@ Figure pullDim(Figure f:overlay()) {
     f.figs = [pullDim(h)|Figure h<-f.figs];
     num maxWidth = max([h.width>=0?h.width+(getLineWidth(h)):-1|h<-f.figs]);
     num maxHeight = max([h.height>=0?h.height+(getLineWidth(h)):-1|h<-f.figs]);
-    if (f.width<0) f.width = maxWidth;
-    if (f.height<0) f.height = maxHeight;
+    if (f.width<0 && maxWidth>=0) f.width = maxWidth;
+    if (f.height<0 && maxHeight>=0) f.height = maxHeight;
     return f;
     }
     
@@ -454,6 +454,7 @@ default Figure pullDim(Figure f) {
           if (hcat():=f) f.figs = head(z);
           if (f.width<0 && width>=0) f.width = width+nc*(f.hgap+2*lw)+f.hgap; 
           if (f.height<0 && height>=0) f.height = height+size(z)*(f.vgap+2*lw)+f.vgap;
+          println("PUllDim2 <f.width> <f.height>");
           }
      return f;
      }
