@@ -19,8 +19,6 @@ alias ViewBox = tuple[num x, num y, num width, num height];
 
 // Alignment for relative placement of figure in parent
 
-
-
 public alias Alignment = tuple[num hpos, num vpos];
 
 public Alignment topLeft      	= <0.0, 0.0>;
@@ -164,11 +162,9 @@ public data Figure(
 	
 	emptyFigure()
    | root(Figure fig= emptyFigure())
-   | salix(num width, num height, void() f)	
-   | htmlText(value text, str overflow = "hidden") // text label html
-   | svgText(value text, str overflow = "hidden") // text label html
-// | markdown(value text)					// text with markdown markup (TODO: make flavor of text?)
-// | math(value text)						// text with latex markup
+   | htmlFigure (void() f)	
+   | htmlText(str text, str overflow = "hidden") // text label html
+   | svgText(str text, str overflow = "hidden") // text label svg
    
 // Graphical elements
 
@@ -206,30 +202,6 @@ public data Figure(
    | at(num x, num y, Figure fig)	
    
    | rotate(num angle, Figure fig, num cx = -1, num cy = -1, num r=-1) // in Radians
-   
-// Input elements
-   //| buttonInput(str txt, bool disabled=false,  value \value = "")
-   //| checkboxInput(list[str] choices = ["0"], value \value = (), value labels=())
-   // | choiceInput(list[str] choices = ["0"], value \value = "")
-   // | colorInput()
-   // date
-   // datetime
-   // email
-   // month
-   // time
-   // tel
-   // week
-   // url
-   
-  //  | numInput()
-  // | rangeInput(num low=0, num high=100, num step=1, value \value = 50.0)
-   //| strInput(int nchars=20, value \value="", bool keydown= true) 
-   // | choice(int selection = 0, Figures figs = [])
-  
-/*
-   | _computeFigure(bool() recomp,Figure () computeFig, FProperties props)
- 
-*/
 
 
 // Charts
@@ -248,13 +220,8 @@ public data Figure(
 	       ,Orientation orientation = topDown()
 	       ,bool manhattan=false
 // For memory management
-	       , int refinement=5, int rasterHeight=150)
-/*      
-   |d3Pack(DDD d = ddd(), str fillNode="rgb(31, 119, 180)", str fillLeaf = "ff7f0e", num fillOpacityNode=0.25, num fillOpacityLeaf=1.0,
-          int diameter = 960, bool inTooltip = false)
-   |d3Treemap(DDD d = ddd(), bool inTooltip = false)
-   |d3Tree(Figure root)
-   |d3Tree(DDD d = ddd())
+	       , int refinement=5, int rasterHeight=150)     
+/*
    |pack(Figures fs)
 */
    ;
@@ -539,12 +506,6 @@ public map[str, value] adt2map(node t) {
 public str adt2json(node t) {
    return toJSON(adt2map(t), true);
    }
-      
-public Figure frame(Figure f, num shrink=1.0, num grow=1.0, str id = "", str visibility="visible", int borderWidth = -1, 
-      str borderStyle = "") {
-      return box(lineWidth=0, fillColor="none", fig = f, shrink= shrink, grow = grow, id = false?"<newId()>_frame":id
-      , visibility = visibility, borderWidth=borderWidth, borderStyle= borderStyle);
-      }
       
 public Figure circleSegment(num cx = 100, num cy =100, num r =50, num startAngle = 0, num endAngle =60,
       str fillColor = "", str lineColor = "", int lineWidth = -1, bool fill = true,tuple[int,int] size = <0,0>

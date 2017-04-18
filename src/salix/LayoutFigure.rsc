@@ -182,7 +182,7 @@ list[value] svgSize(Figure f) {
    }
    
 list[value] fromTextPropertiesToSalix(Figure f, bool svg) {
-    list[tuple[str, str]] styles = (svg?[]:f.style); 
+    list[tuple[str, str]] styles = f.style; 
     if (!svg) styles+= <"overflow", f.overflow>; 
     int fontSize = (f.fontSize>=0)?f.fontSize:12;
     styles+=<"font-size", "<fontSize>pt">;
@@ -335,10 +335,7 @@ Figure pullDim(Figure f:emptyFigure()) {
       f.height = 0;
       return f;
       }
-      
-Figure pullDim(Figure f:salix(num width, num height, void() z)) {
-      return salix(width, height, z, width = width, height = height) ;
-      }
+     
 
 Figure pullDim(Figure f:overlay()) {
     f = adjustParameters(f);
@@ -454,7 +451,6 @@ default Figure pullDim(Figure f) {
           if (hcat():=f) f.figs = head(z);
           if (f.width<0 && width>=0) f.width = width+nc*(f.hgap+2*lw)+f.hgap; 
           if (f.height<0 && height>=0) f.height = height+size(z)*(f.vgap+2*lw)+f.vgap;
-          println("PUllDim2 <f.width> <f.height>");
           }
      return f;
      }
@@ -676,7 +672,7 @@ void eval(Figure f:shapes::Figure::circle()) {salix::SVG::circle(fromFigureAttri
 
 void eval(Figure f:shapes::Figure::ellipse()) {salix::SVG::ellipse(fromFigureAttributesToSalix(f));if (emptyFigure()!:=f.fig) innerFig(f, f.fig)();}
 
-void eval(Figure f:htmlText(value v)) {
+void eval(Figure f:htmlText(str s)) {
      num lw = getLineWidth(f);
      num width = f.width; num height = f.height; 
      list[value] foreignObjectArgs = [style(<"line-height", "1.5">)];
@@ -699,11 +695,11 @@ void eval(Figure f:htmlText(value v)) {
      tdArgs += vAlign(f.align); 
      tdArgs+=[salix::HTML::style(styles)];
      list[value] tableArgs = /*foreignObjectArgs+*/fromTextPropertiesToSalix(f, false); 
-     if(str s:=v) foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[s]);});}]);}]);
+     foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[s]);});}]);}]);
     }
     
- void eval(Figure f:svgText(value v)) {
-     if(str s:=v) salix::SVG::text_(fromTextPropertiesToSalix(f, true)+[(){salix::Core::_svgText(s);}]);
+ void eval(Figure f:svgText(str s)) {
+     salix::SVG::text_(fromTextPropertiesToSalix(f, true)+[(){salix::Core::_svgText(s);}]);
     }
     
 void eval(Figure f:vcat()) {
@@ -751,7 +747,7 @@ void eval(Figure f:path(list[str] _)) {
                                  eval(d.fig);
                                  });                    
                          });               
-                   salix::SVG::svg(salix::SVG::viewBox(getViewBox(f)), (){
+                   salix::SVG::svg(salix::SVG::viewBox(getViewBox(f)), preserveAspectRatio("none"), (){
                               salix::SVG::g(salix::SVG::transform(f.transform),
                           (){                        
                              salix::SVG::path(fromFigureAttributesToSalix(f, r));
@@ -825,7 +821,7 @@ void eval(Figure f:at(num x, num y, Figure g)) {
            }]);
          }
          
-void eval(Figure f:salix(_, _, void() g) ){
+void eval(Figure f:htmlFigure(void() g) ){
        num lw = getLineWidth(f);
        num width = f.width; num height = f.height;   
        list[value] foreignObjectArgs = [];

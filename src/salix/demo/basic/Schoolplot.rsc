@@ -36,7 +36,7 @@ Figure testFigure(Model m) {
 void myView(Model m) {
     div(() {
         h2("Figure using SVG");
-        fig(testFigure(m)// , width = m[0].side+100, height = m[0].side+100
+        fig(testFigure(m) , width = m[0].side, height = m[0].side
         );
         num lo = 200, hi = 1000;
         list[list[list[SliderBar]]] sliderBars = [[
@@ -85,13 +85,15 @@ list[str] innerSchoolPlot2() {
  Figure schoolPlot(Model g) {
      tuple[num side] m  =g[0];
      num r = m.side;
-     return  overlay(lineWidth=1, width = m.side, height = m.side, figs = [
+     return  overlay(lineWidth=1// , width = m.side, height = m.side
+        , figs = [
         shapes::Figure::path(innerSchoolPlot1()+innerSchoolPlot2(), fillColor = "none",
         viewBox=<0, 0, 10, 10>, // width = 400, height = 400, 
         lineColor = "blue")
          , 
        at(150*m.side/400, 150*m.side/400, shapes::Figure::circle(r=r/10,  fillColor = "yellow"
-        ,lineWidth = 10, lineColor = "red", lineOpacity=0.5, fillOpacity=0.5, fig = htmlText("Hello")
+        ,lineWidth = 10, lineColor = "red", lineOpacity=0.5, fillOpacity=0.5, fig = htmlText("Hello"
+            , style=[<"color", "darkblue">, <"font-weight","bold">, <"fill-opacity","1.0">])
         ))
         ,
        at(50*m.side/400, 50*m.side/400, shapes::Figure::circle(lineWidth=10, lineColor= "red", fillColor = "none",  fig= at(0,0, 
@@ -119,18 +121,18 @@ Figure simpleGrid(Figure f) {
 Figure labeled(Model m, Figure g) {
      return hcat(lineWidth = 0, 
         figs = [
-           vcat(figs=gridLabelY(m), padding_bottom=20)
+           vcat(figs=gridLabelY(m), padding_bottom=0)
            , vcat(lineWidth = 0, figs = [box(fig=g, lineWidth=4, lineColor="grey"),
            hcat(figs = gridLabelX(m))])
            ]);
      }
      
  list[Figure] gridLabelX(Model m) {
-     return [box(lineWidth = 0, lineColor = "none", width =  m[0].side/10, height = m[0].side/20, fig = htmlText("<i>"))|i<-[1..10]];
+     return [box(lineWidth = 0, lineColor = "none", width =  m[0].side/10, height = 20, fig = htmlText("<i>"))|i<-[1..10]];
      }
      
  list[Figure] gridLabelY(Model m) {
-     return [box(lineWidth = 0, lineColor = "none", width = m[0].side/10, height = m[0].side/10, fig = htmlText("<i>"))|i<-[9..0]];
+     return [box(lineWidth = 0, lineColor = "none", width = 20, height = m[0].side/10, fig = htmlText("<i>"))|i<-[9..0]];
      }
      
  Figure labeledGrid(Model m, Figure f) {
