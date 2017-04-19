@@ -57,9 +57,10 @@ Figure nGon(Model m) {
 Figure testFigure(Model m) {
      int n  = 20;
      return vcat(vgap=10,  figs=[
-       box(lineWidth=2, lineColor="black",  fig=overlay(size=<round(100*2*PI()), 210>, figs=[
+       box(lineWidth=2, lineColor="black",  fig=overlay(size=<600, 200>, figs=[
        path([p_.M(0, -sin(m[0].x))]+[p_.L(m[0].f*2*PI()*i/n, -sin(2*PI()*(i/n)+m[0].x))|num i<-[1, 2..n+1]]
-       viewBox=<0, -1, 2*PI(), 2>, fillColor="none", lineColor="red"   , midMarker=circle(r=0.03, fillColor="red")
+       viewBox=<0, -1, 2*PI(), 2>, fillColor="none", lineColor="red"   , midMarker=
+             circle(r=2, style=[<"fill", "black">], viewBox=<0, 0, 400, 400>)
        )
        ,path([p_.M(0, -cos(m[1].x))]+[p_.L(m[1].f*2*PI()*i/n, -cos(2*PI()*(i/n)+m[1].x))|num i<-[1,2..n+1]]
        viewBox=<0, -1, 2*PI(), 2>,  fillColor="none", lineColor="blue" //, midMarker=box(size=<6, 6>, lineColor="black")

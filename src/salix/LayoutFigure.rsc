@@ -54,6 +54,7 @@ str toP(num e) {
       }
        
  list[value] fromCommonFigureAttributesToSalix(Figure f) {  
+   list[tuple[str, str]] styles = f.style; 
    list[value] r =[];    
    if (!isEmpty(f.fillColor)) r+= salix::SVG::fill(f.fillColor);
    if (!isEmpty(f.lineColor)) r+= salix::SVG::stroke(f.lineColor);
@@ -62,6 +63,7 @@ str toP(num e) {
    if (f.fillOpacity>=0) r+= salix::SVG::fillOpacity("<f.fillOpacity>");
    if (!isEmpty(f.visibility)) r+= salix::SVG::visibility(f.visibility);
    if (Event q:= f.event)  if (onclick(Msg msg):=q) r+=salix::SVG::onClick(msg);
+   if (!isEmpty(styles)) r +=salix::HTML::style(styles);
    return r;
    }
    
@@ -129,23 +131,59 @@ list[value] fromFigureAttributesToSalix(f:shapes::Figure::ellipse()) {
    } 
    
  list[value] fromFigureAttributesToSalix(f:shapes::Figure::path(list[str] curve),
-    list[tuple[Figure, str]] markers) {
+    list[str] refs) {
    list[value] r =[];
-   num lwo = getLineWidth(f);
    if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
    if (f.height>=0) r+= salix::SVG::height("<f.height>");
-   for (tuple[Figure fig, str lab] m<-markers) {
-        if (startsWith(m.lab, "startMarker")) r+=salix::SVG::style("marker-start:url(#<m.lab>);");
+   for (str ref <-refs) {
+        if (startsWith(ref, "startMarker")) r+=salix::SVG::style("marker-start:url(#<ref>);");
         else
-        if (startsWith(m.lab, "midMarker")) r+=salix::SVG::style("marker-mid:url(#<m.lab>);");
+        if (startsWith(ref, "midMarker")) r+=salix::SVG::style("marker-mid:url(#<ref>);");
         else
-        if (startsWith(m.lab, "endMarker")) r+=salix::SVG::style("marker-end:url(#<m.lab>);");             
+        if (startsWith(ref, "endMarker")) r+=salix::SVG::style("marker-end:url(#<ref>);");             
         }
    r+=salix::SVG::vectorEffect("non-scaling-stroke");
    r+=salix::SVG::d(intercalate(" ", curve));
    r+=fromCommonFigureAttributesToSalix(f);
    return r; 
    }
+   
+str points2str(Points points) = "<for(p<-points){> <toP(p[0])>,<toP(p[1])>  <}>";
+ 
+list[value] fromFigureAttributesToSalix(f:shapes::Figure::polygon(Points curve), list[str] refs) {
+   list[value] r =[];
+   if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height>");
+   for (str ref <-refs) {
+        if (startsWith(ref, "startMarker")) r+=salix::SVG::style("marker-start:url(#<ref>);");
+        else
+        if (startsWith(ref, "midMarker")) r+=salix::SVG::style("marker-mid:url(#<ref>);");
+        else
+        if (startsWith(ref, "endMarker")) r+=salix::SVG::style("marker-end:url(#<ref>);");             
+        }
+   r+=salix::SVG::vectorEffect("non-scaling-stroke");
+   r+=salix::SVG::points(points2str(curve));
+   r+=fromCommonFigureAttributesToSalix(f);
+   return r; 
+   } 
+   
+list[value] fromFigureAttributesToSalix(f:shapes::Figure::polyline(Points curve), list[str] refs) {
+   list[value] r =[];
+   if (f.width>=0) r+= salix::SVG::width("<f.width>"); 
+   if (f.height>=0) r+= salix::SVG::height("<f.height>");
+   for (str ref <-refs) {
+        if (startsWith(ref, "startMarker")) r+=salix::SVG::style("marker-start:url(#<ref>);");
+        else
+        if (startsWith(ref, "midMarker")) r+=salix::SVG::style("marker-mid:url(#<ref>);");
+        else
+        if (startsWith(ref, "endMarker")) r+=salix::SVG::style("marker-end:url(#<ref>);");             
+        }
+   r+=salix::SVG::vectorEffect("non-scaling-stroke");
+   r+=salix::SVG::points(points2str(curve));
+   r+=fromCommonFigureAttributesToSalix(f);
+   return r; 
+   }   
+
    
 list[value] fromFigureAttributesToSalix(f:shapes::Figure::ngon(),
         list[str] curve) {
@@ -569,8 +607,10 @@ list[list[Figure]] expand(list[list[Figure]] m) {
     num lwo = getLineWidth(f);
     num lwi = getLineWidth(g);
     num width = f.width; num height = f.height;
-    if (g.width<0 && width>=0) g.width = g.hshrink*min(width, height)-lwi-lwo;
-    if (g.height<0 && height>=0) g.height = g.vshrink*min(width, height)-lwi-lwo; 
+    if (g.width<0 && width>=0) g.width = g.hshrink*min(width, height)/sqrt(2)-lwi-lwo;
+        // g.width = g.hshrink*width*width/diag(width, height)-lwi-lwo;
+    if (g.height<0 && height>=0) g.height = g.vshrink*min(width, height)/sqrt(2)-lwi-lwo; 
+        // g.height = g.hshrink*height*height/diag(width, height)-lwi-lwo;
     g = pushDim(g);
     Figure r = rotate(angle, g);  
     r.lineWidth = f.lineWidth;
@@ -725,12 +765,12 @@ void eval(Figure f:grid()) {
                    }
                    
 str getViewBox(Figure f) {
-                   return "<f.viewBox.x>  <f.viewBox.y>  <f.viewBox.width>0?f.viewBox.width:f.width> <
-                        f.viewBox.height>0?f.viewBox.height:f.height>";
+                   return "<f.viewBox[0]>  <f.viewBox[1]>  <f.viewBox[2]>0?f.viewBox[2]:f.width> <f.viewBox[3]>0?f.viewBox[3]:f.height>";
                    }
-                                      
-void eval(Figure f:path(list[str] _)) {
+     
+ list[str] addMarkers(Figure f) {             
                    list[tuple[Figure fig, str lab]] r =[];
+                   list[str] refs = [];
                    int startCode =  getFingerprintNode(f.startMarker);
                    int midCode =  getFingerprintNode(f.midMarker);
                    int endCode =  getFingerprintNode(f.endMarker);
@@ -740,18 +780,41 @@ void eval(Figure f:path(list[str] _)) {
                    // println("fingerPrint: <getFingerprintNode(f.midMarker)>");
                    if (!isEmpty(r))
                             salix::SVG::defs(() {
-                            for (tuple[Figure fig, str lab] d<-r)
+                            for (tuple[Figure fig, str lab] d<-r) {
                             salix::SVG::marker(salix::SVG::id(d.lab), markerWidth("<d[0].width>"), markerHeight("<d[0].height>"),
-                              refX("<d[0].width/2.0>"), refY("<d[0].height/2.0>"), orient("auto"),
+                              refX("<d[0].width/2.0>"), refY("<d[0].height/2.0>"), orient("auto"), preserveAspectRatio("none"),
+                              salix::SVG::viewBox(getViewBox(d.fig)),
                               () {                                                                     
                                  eval(d.fig);
-                                 });                    
-                         });               
+                                 });
+                                 refs += d.lab;
+                                 }                    
+                         });
+                      return refs;
+                    } 
+                                      
+void eval(Figure f:path(list[str] _)) {
+                   list[str] refs = addMarkers(f);           
                    salix::SVG::svg(salix::SVG::viewBox(getViewBox(f)), preserveAspectRatio("none"), (){
                               salix::SVG::g(salix::SVG::transform(f.transform),
-                          (){                        
-                             salix::SVG::path(fromFigureAttributesToSalix(f, r));
-                            });
+                                 (){                        
+                                    salix::SVG::path(fromFigureAttributesToSalix(f, refs));
+                                   }
+                              );
+                       }); 
+                   }
+                   
+ void eval(Figure f:polygon(Points _)) {   
+                   list[str] refs = addMarkers(f);      
+                   salix::SVG::svg(salix::SVG::viewBox(getViewBox(f)), preserveAspectRatio("none"), (){                                                
+                             salix::SVG::polygon(fromFigureAttributesToSalix(f, refs));
+                       }); 
+                   }
+                   
+void eval(Figure f:polyline(Points _)) {
+                   list[str] refs = addMarkers(f);         
+                   salix::SVG::svg(salix::SVG::viewBox(getViewBox(f)), preserveAspectRatio("none"), (){                                                
+                             salix::SVG::polyline(fromFigureAttributesToSalix(f, refs));
                        }); 
                    }
                    

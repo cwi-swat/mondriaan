@@ -47,7 +47,6 @@ data Msg;
 data Event = noEvent()
              |onclick(Msg m);
 
-alias XYData 			= lrel[num x, num y];
 
 /* 
    In bars the first column (rank) determines the bar placement order.	
@@ -55,10 +54,6 @@ alias XYData 			= lrel[num x, num y];
    In lines the third column determines the tooltips belonging to the points
 */
 		 		 
-alias XYLabeledData     = lrel[num xx, num yy, str label];	
-
-alias GoogleData     = list[list[value]];	
-
 
 //data Margin = margin(int left = 0, int right = 0, int top = 0, int bottom = 0);
 
@@ -86,10 +81,6 @@ data Vertex
 alias Vertices = list[Vertex];
 
 alias Points = lrel[num x, num y];
-
-alias Constraint = tuple[bool(value v) cond, str emsg];
-
-alias FormEntry = tuple[str id, value startValue, str fieldName, list[Constraint] constraints];
 
 public alias Figures = list[Figure];
 
@@ -121,7 +112,6 @@ public data Figure(
     	// Line properties
 		num lineWidth = -1,			
 		str lineColor = "", 		
-		list[int] lineDashing = [],	
 		num lineOpacity = -1,
 	
 		// Area properties
@@ -155,6 +145,7 @@ public data Figure(
 		// Tooltip
 		value tooltip = "",
 		lrel[str, str] style=[],
+		ViewBox viewBox = <0, 0, -1, -1>,	
 		
 		// Panel
 		Figure panel = emptyFigure()
@@ -175,13 +166,22 @@ public data Figure(
    | circle(num cx = -1, num cy = -1, num r=-1, Figure fig=emptyFigure())
 
 // regular polygon   
-   | ngon(int n=3, num r=-1, num angle = 0, Figure fig=emptyFigure())	
+   | ngon(int n=3, num r=-1, num angle = 0, Figure fig=emptyFigure())
+   | polygon(Points points
+        ,Figure startMarker=emptyFigure()
+   	    ,Figure midMarker=emptyFigure() 
+   	    ,Figure endMarker=emptyFigure()   
+        )
+   | polyline(Points points
+        ,Figure startMarker=emptyFigure()
+        ,Figure midMarker=emptyFigure() 
+   	    ,Figure endMarker=emptyFigure()   
+        )		
    | path(list[str] curve, 	str transform=""	
    			    ,bool fillEvenOdd = true		
    			    ,Figure startMarker=emptyFigure()
    			    ,Figure midMarker=emptyFigure() 
-   			    ,Figure endMarker=emptyFigure()
-   			    ,ViewBox viewBox = <0, 0, -1, -1>	    
+   			    ,Figure endMarker=emptyFigure()   
    		   )
     | textPath(str transform, num scale, num xp, num yp, list[str] dd, 	list[str] label		// Arbitrary shape
     	// Connect vertices with line/curve
@@ -203,15 +203,6 @@ public data Figure(
    
    | rotate(num angle, Figure fig, num cx = -1, num cy = -1, num r=-1) // in Radians
 
-
-// Charts
-	| comboChart(list[Chart] charts =[],  ChartOptions options = chartOptions(), bool tickLabels = false,
-	  int tooltipColumn = 1)
-    | lineChart(GoogleData googleData = [], XYData xyData = [], ChartOptions options = chartOptions())
-    | areaChart(GoogleData googleData = [], XYData xyData = [], ChartOptions options = chartOptions())
-	| scatterChart(GoogleData googleData = [], XYData xyData = [], ChartOptions options = chartOptions())
-	| candlestickChart(GoogleData googleData =[], ChartOptions options = chartOptions())
-	| pieChart(GoogleData googleData = [],  ChartOptions options = chartOptions())
 
    | graph(list[tuple[str, Figure]] nodes = [], list[Edge] edges = [], map[str, NodeProperty] nodeProperty = (), 
      GraphOptions graphOptions = graphOptions(), map[str, str] figId=())
@@ -239,167 +230,7 @@ data Edge = edge(str from, str to, str label = "", str lineInterpolate="basis" /
      , list[int] lineDashing = []
      , int labelOffset = 10, int lineWidth = -1);
   
-data ChartArea ( 
-     value left = "",
-     value width = "",
-     value top = "",
-     value height = "",
-     value backgroundColor = ""
-     ) = chartArea();
- 
-                
-data Legend (bool none = false,
-             str alignment = "",
-             int maxLines = -1,
-             str position ="") = legend()
-            ;
-            
-           
-data ViewWindow(int max = -1, int min = -1) = viewWindow();
 
-data Gridlines(str color = "", int count =-1) = gridlines();
-
-data Series (
-    str color ="",
-    str curveType = "",
-    int lineWidth = -1,
-    str pointShape = "",
-    int pointSize = -1,
-    str \type=""
-    ) = series();
-    
-data Bar (value groupWidth = "") = bar();
-
-data Animation(
-      int duration = -1,
-      str easing = "",
-      bool startup = false
-      ) = animation();
-
-data Tick(num v = -1, str f  ="") = tick();
-
-data TextStyle(str color="", str fontName="", int fontSize=-1, 
-       bool bold = false, bool italic = false) = textStyle();
-    
-data Axis(str title="",
-          num minValue = -1,
-          num maxValue = -1,
-          ViewWindow viewWindow_= ViewWindow::viewWindow(),
-          bool slantedText = true,
-          bool logScale = false,
-          int slantedTextAngle = -1, 
-          int direction = -1,
-          str textPosition = "",
-          str format = "", 
-           Gridlines gridlines_ =  Gridlines::gridlines() ,
-          list[Tick] tick_ = [],
-          TextStyle titleTextStyle_ = textStyle(),
-          TextStyle textStyle_ = textStyle())
-          = axis();
-          
-               
-data Candlestick( 
-     bool hollowIsRising = false,
-     CandlestickColor fallingColor = candlestickColor(),
-     CandlestickColor risingColor = candlestickColor()
-     ) = candlestick(); 
-     
-
-data CandlestickColor( 
-     str fill = "",
-     str stroke = "",
-     int strokeWidth = -1
-     ) = candlestickColor(); 
-     
-data SankeyColor( 
-     str fill = "",
-     str stroke = "",
-     real fillOpacity = -1.0,
-     int strokeWidth = -1
-     ) = sankeyColor(); 
-
-data SankeyLabel( 
-     str fontName = "",
-     int fontSize = -1,
-     str color = "",
-     int strokeWidth = -1,
-     bool bold = false, 
-     bool italic = false
-     ) = sankeyLabel(); 
-     
-data SankeyNode(
-     SankeyLabel label = sankeyLabel(),
-     int labelPadding = -1,
-     int nodePadding = -6,
-     int width = -1
-     ) = sankeyNode();
-         
-data SankeyLink (
-     SankeyColor color = sankeyColor()
-     ) = sankeyLink();
-  
-data Sankey(
-      int iterations = -1,
-      SankeyLink link = sankeyLink(),
-      SankeyNode \node = sankeyNode()
-     ) = sankey();   
-                  
-data ChartOptions (str title = "",
-             Animation animation_ = Animation::animation(),
-             Axis hAxis = axis(),
-             Axis vAxis = axis(),
-             ChartArea chartArea_ = ChartArea::chartArea(),
-             Bar bar_ = Bar::bar(),
-             int width=-1,
-             int height = -1,
-             bool forceIFrame = true,
-             bool is3D = false, 
-             Legend legend_ = Legend::legend(),
-             int lineWidth = -1,
-             int pointSize = -1,
-             bool interpolateNulls = false,
-             str curveType = "",
-             str seriesType = "",
-             str pointShape = "",
-             bool isStacked = false,
-             Candlestick candlestick_ = Candlestick::candlestick(),
-             Sankey sankey_ = Sankey::sankey(),
-             list[Series] series_ = []
-             ) = chartOptions()
-            ;
-            
-
-ChartOptions updateOptions (list[Chart] charts, ChartOptions options) {
-    options.series_ = [];
-    for (c<-charts) {
-        Series s = series();
-        switch(c) {
-            case Chart::line(XYData d1): s.\type = "line";
-            case Chart::line(XYLabeledData d2): s.\type = "line";
-            case Chart::area(XYData d3): s.\type=  "area";
-            case Chart::area(XYLabeledData d4): s.\type=  "area";
-            case Chart::bar(_) : s.\type = "bars";
-            }
-        if (!isEmpty(c.color)) s.color = c.color;
-        if (!isEmpty(c.curveType)) s.curveType = c.curveType;
-        if (c.lineWidth>=0)  s.lineWidth = c.lineWidth;
-        if (!isEmpty(c.pointShape)) s.pointShape = c.pointShape;
-        if (c.pointSize>=0) s.pointSize = c.pointSize;
-        options.series_ += [s];
-        }
-    return options;
-    }   
-
-data Chart(str name = "", str color = "", str curveType = "",
-     int lineWidth = -1, str pointShape = "", int pointSize = -1)
-    =
-	  line(XYData xydata) 
-	| line(XYLabeledData xylabeleddata) 
-	| area(XYData xydata)
-	| area(XYLabeledData xylabeleddata)
-	| bar(XYLabeledData xylabeledData)
-	;
-	
 
 public Figure idEllipse(num rx, num ry) = ellipse(rx=rx, ry = ry, lineWidth = 0, fillColor = "none");
 
@@ -418,76 +249,7 @@ public Figure graph(list[tuple[str, Figure]] n, list[Edge] e, tuple[int, int] si
                ;
              	
 	
-map[str, str] getTooltipMap(int tooltipColumn) {
-    str typ = tooltipColumn < 0 || tooltipColumn == 2 ? "string":"number";
-    return ("type": typ, "role":"tooltip");
-    }
 
-tuple[list[map[str, str]] header, map[tuple[value, int], list[value]] \data] 
-   tData(Chart c, int tooltipColumn) {
-     list[list[value]] r = [];
-     list[map[str, str]] h = [];
-     switch(c) {
-        case line(XYData x): {r = [[d[0], d[1]]|d<-x]; h = [("type":"number", "label":c.name)];}
-        case area(XYData x): {r = [[d[0], d[1]]|d<-x]; h = [("type":"number", "label":c.name)];}
-        case line(XYLabeledData x): {
-                                     r = [[d[0], d[1], tooltipColumn>=0?"<d[tooltipColumn]>":d[2]]|d<-x];
-                                     h = [("type":"number", "label":c.name), getTooltipMap(tooltipColumn)];
-                                    }
-        case area(XYLabeledData x): {
-                                      r = [[d[0], d[1], tooltipColumn>=0?"<d[tooltipColumn]>":d[2]]|d<-x];
-                                      h = [("type":"number", "label":c.name), getTooltipMap(tooltipColumn)];
-                                    }
-        case bar(XYLabeledData x): {
-                                    r = [[d[0], d[1], tooltipColumn>=0?"<d[tooltipColumn]>":d[2]]|d<-x]; 
-                                    h = [("type":"number","label":c.name), getTooltipMap(tooltipColumn)];
-                                   }           
-        }
-     map[tuple[value, int], list[value]] q  = ();
-     for (d<-r) {
-         int i = 0;
-         while(q[<d[0], i>]?) i = i + 1;
-         q[<d[0], i>] = tail(d);
-         }
-     return <h, q>;
-     }
-     
-bool hasXYLabeledData(Chart c) {
-     switch(c) {
-         case line(XYLabeledData _): return true;
-         case area(XYLabeledData _): return true;
-         case bar(XYLabeledData _): return true;
-         }
-     return false;
-     } 
-    
-
-list[list[value]] joinData(list[Chart] charts, bool tickLabels, int tooltipColumn) {
-   list[tuple[list[map[str, str]] header, map[tuple[value, int], list[value]]\data]] m = [tData(c, tooltipColumn)|c<-charts];   
-   set[tuple[value, int]] d = union({domain(c.\data)|c <-m});   
-   list[tuple[value, int]] x = sort(toList(d));
-   int i = 0;
-   for (c<-charts) {
-       if (hasXYLabeledData(c)) break;
-       i = i +1;
-       }
-   if (!tickLabels || i == size(charts)) 
-      return [[("type":"number")]+[*c.\header|c<-m]]+[[z[0]] +[*((c.\data[z]?)?c.\data[z]:"null")|c<-m]|z<-x];
-   else {
-      map[value, value] lab =  (z:m[i].\data[z][1]|z<-x);
-      m = [tData(c, tooltipColumn)|c<-charts];  
-      return 
-           [[("type":"string")]+[*c.\header|c<-m]]+
-           [[lab[z]] +[*((c.\data[z]?)?c.\data[z]:"null")|c<-m]|z<-x];
-      }
-   }
-
-/* 
-public Figure svg(Figure f, tuple[int, int] size = <0, 0>) {
-    Figure r = box(size=size, lineWidth = 0, fillColor = "none", fig = f);
-    return r;
-    }
-*/
   
 public map[str, value] adt2map(node t) {
    map[str, value] q = getKeywordParameters(t);
