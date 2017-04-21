@@ -1,16 +1,19 @@
-module salix::lib::UML
+module salix::ParseHtml
 
 import lang::xml::DOM;
 import salix::Node;
 import salix::SVG;
-import salix::lib::UML;
+
 
 import IO;
+import String;
 
+public salix::Node::Node html2Node(str src) {
+    if (!startsWith(src, "\<")) return node2node(cdata(src));
+    return node2node(parseXMLDOM(src));
+    }
 
-salix::Node::Node uml2svgNode(str src) = node2node(parseXMLDOM(uml2svg(src)));
-
-public  salix::Node::Node node2node(lang::xml::DOM::Node n) {
+private salix::Node::Node node2node(lang::xml::DOM::Node n) {
   switch (n) {
     case document(lang::xml::DOM::Node root):
       return node2node(root);
@@ -40,6 +43,3 @@ public  salix::Node::Node node2node(lang::xml::DOM::Node n) {
       throw "Unsupported node: <n>";     
   }
 }
-
-@javaClass{salix.lib.PlantUML}
-java str uml2svg(str src);

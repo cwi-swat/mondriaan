@@ -4,8 +4,10 @@ import salix::SVG;
 import salix::HTML;
 import salix::App;
 import salix::Core;
+import salix::Node;
 import shapes::Figure;
 import salix::lib::Dagre;
+import salix::ParseHtml;
 import util::Reflective;
 import Prelude;
 
@@ -735,7 +737,7 @@ void eval(Figure f:htmlText(str s)) {
      tdArgs += vAlign(f.align); 
      tdArgs+=[salix::HTML::style(styles)];
      list[value] tableArgs = /*foreignObjectArgs+*/fromTextPropertiesToSalix(f, false); 
-     foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[s]);});}]);}]);
+     foreignObject(foreignObjectArgs+[(){table(tableArgs+[(){tr((){td(tdArgs+[(){htm((){_svgText(s);});}]);});}]);}]);
     }
     
  void eval(Figure f:svgText(str s)) {
@@ -893,4 +895,10 @@ void eval(Figure f:htmlFigure(void() g) ){
        foreignObjectArgs+= salix::SVG::x("<lw>"); foreignObjectArgs+= salix::SVG::y("<lw>");
        foreignObject(foreignObjectArgs+[(){g();}]);
     } 
-     
+    
+ Node _htm(list[Node] kids, list[Attr] attrs) {
+       if (txt(str s):=kids[0]) return html2Node(s);
+       return html2Node("not a string");
+       }
+       
+ void htm(value vals...) = build(vals, _htm);    

@@ -149,7 +149,7 @@ void build(list[value] vals, Node(list[Node], list[Attr]) elt) {
       add(h);
     }
     else if (Attr _ !:= vals[-1]) { // else (if not Attr), render as text.
-      _htmlText(vals[-1]);
+      _svgText(vals[-1]);
     }
   }
   

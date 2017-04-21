@@ -17,7 +17,7 @@ import IO;
 data Msg;
 
 @doc{Create a text node.}
-void text(value v) = _htmlText(v);
+void text(value v) = _svgText(v);
 
 
 @doc{The element render functions below all call build
@@ -225,7 +225,7 @@ Node _summary(list[Node] kids, list[Attr] attrs) = element("summary", kids, attr
 Node _menuitem(list[Node] kids, list[Attr] attrs) = element("menuitem", kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
 Node _menu(list[Node] kids, list[Attr] attrs) = element("menu", kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
 
-Node _shadow(list[Node] kids, list[Attr] attrs) = shadow(kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
+// Node _shadow(list[Node] kids, list[Attr] attrs) = shadow(kids, attrsOf(attrs), propsOf(attrs), eventsOf(attrs));
 
 /*
  * Attributes

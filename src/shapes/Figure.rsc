@@ -289,6 +289,7 @@ public str pickColor() {int r = currentColor;currentColor = (currentColor+3)%siz
 
 public str figToString(Figure f) {
      str r = "<f>";
+     r = replaceAll(r,"&", "&amp;");
      r = replaceAll(r, "\<0.0,0.0\>", "topLeft");
      r = replaceAll(r, "\<0.5,0.0\>", "topMid");
      r = replaceAll(r, "\<1.0,0.0\>", "topRight");
@@ -298,6 +299,8 @@ public str figToString(Figure f) {
      r = replaceAll(r, "\<0.0,1.0\>", "bottomLeft");
      r = replaceAll(r, "\<0.5,1.0\>", "bottomMid");
      r = replaceAll(r, "\<1.0,1.0\>", "bottomRight");
+     r = replaceAll(r,"\<", "&lt;");
+     r = replaceAll(r,"\>", "&gt;");  
      return r;
      }
      

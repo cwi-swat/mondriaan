@@ -61,7 +61,7 @@ Figure stack1(Figure f) = vcat(align=centerMid, vgap=4, figs=[box(grow=1.2, fig=
      
  void myView(Model m) {
     div(() {
-        h2("Figure using SVG");
+        // h2("Figure using SVG");
         fig(tests(m));
         });
     }
